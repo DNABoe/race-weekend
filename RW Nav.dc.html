@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&amp;display=block">
+</helmet>
+<sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+<div style="height:64px;display:flex;align-items:center;gap:28px;padding:0 32px;border-bottom:1px solid rgba(255,255,255,0.07);background:#0e1016;font-family:'IBM Plex Sans',sans-serif;color:#f3f4f6;box-sizing:border-box">
+<div style="display:flex;align-items:center;gap:10px;flex:none">
+<img src="assets/logo-mark.png" alt="Race Weekend" style="height:22px;width:auto;display:block">
+<span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:16px;letter-spacing:0.08em">RACE WEEKEND</span>
+</div>
+<div style="display:flex;align-items:stretch;gap:2px;height:64px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<div style="position:relative;display:flex;align-items:center;gap:8px;padding:0 14px;font-size:14px;font-weight:500;color:{{ t.color }}">
+<sc-if value="{{ t.flag }}" hint-placeholder-val="{{ false }}"><img src="https://flagcdn.com/w40/sg.png" alt="" style="width:18px;height:12px;border-radius:2px;object-fit:cover;display:block"></sc-if>
+<span>{{ t.l }}</span>
+<sc-if value="{{ t.more }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1">expand_more</span></sc-if>
+<span style="position:absolute;left:14px;right:14px;bottom:-1px;height:2px;border-radius:2px;background:{{ t.bar }}"></span>
+</div>
+</sc-for>
+</div>
+<div style="flex:1"></div>
+<sc-if value="{{ isB }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:10px;height:36px;padding:0 14px 0 12px;border-radius:999px;background:#161920;border:1px solid rgba(255,255,255,0.08);font-size:13px">
+<span style="width:7px;height:7px;border-radius:50%;border:2px solid #a0a7b3;box-sizing:border-box"></span>
+<span style="color:#a0a7b3">Singapore GP · Practice 1</span>
+<span style="font-family:'IBM Plex Mono',monospace;font-weight:500">1d 16h 30m</span>
+</div>
+</sc-if>
+<sc-if value="{{ notB }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8a919d"><span style="width:6px;height:6px;border-radius:50%;background:oklch(0.72 0.16 152)"></span>Updated 2 min ago</div>
+</sc-if>
+<sc-if value="{{ showGear }}" hint-placeholder-val="{{ true }}">
+<div style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:{{ gearColor }};background:{{ gearBg }}"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">settings</span></div>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}">
+<div style="background:#0e1016;border-top:1px solid rgba(255,255,255,0.07);font-family:'IBM Plex Sans',sans-serif;color:#f3f4f6">
+<sc-if value="{{ isB }}" hint-placeholder-val="{{ true }}">
+<div style="margin:10px 12px 0;height:52px;display:flex;align-items:center;gap:12px;padding:0 12px 0 14px;border-radius:12px;background:#161920;border:1px solid rgba(255,255,255,0.08)">
+<img src="https://flagcdn.com/w40/sg.png" alt="" style="width:20px;height:14px;border-radius:2px;object-fit:cover;display:block">
+<div style="flex:1;min-width:0;line-height:1.25">
+<div style="font-size:13px;font-weight:500">Practice 1 · Fri 10:30</div>
+<div style="font-size:12px;color:#8a919d">Singapore Grand Prix</div>
+</div>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500">1d 16h</span>
+<span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:#8a919d">chevron_right</span>
+</div>
+</sc-if>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:4px 4px 0">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:56px">
+<sc-if value="{{ t.flag }}" hint-placeholder-val="{{ false }}"><img src="https://flagcdn.com/w40/sg.png" alt="" style="width:22px;height:15px;border-radius:2px;object-fit:cover;display:block;margin:4px 0 5px"></sc-if>
+<sc-if value="{{ t.noFlag }}" hint-placeholder-val="{{ true }}"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;color:{{ t.icolor }};font-variation-settings:{{ t.fv }}">{{ t.i }}</span></sc-if>
+<span style="font-size:11px;font-weight:500;color:{{ t.color }}">{{ t.l }}</span>
+</div>
+</sc-for>
+</div>
+<div style="height:22px;display:flex;align-items:center;justify-content:center"><span style="width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,0.45)"></span></div>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:72},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;'desktop'|'mobile'&quot;},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;calendar&quot;,&quot;standings&quot;,&quot;games&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;],&quot;default&quot;:&quot;b&quot;,&quot;tsType&quot;:&quot;'a'|'b'|'c'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const v = this.props.variant ?? 'b';
+    const active = this.props.active ?? 'home';
+    const desk = (this.props.device ?? 'desktop') === 'desktop';
+    const base = v === 'c'
+      ? [{ k: 'home', l: 'Singapore', flag: true }, { k: 'calendar', l: 'Calendar', i: 'calendar_month' }, { k: 'standings', l: 'Standings', i: 'leaderboard' }, { k: 'more', l: 'More', i: 'more_horiz', more: desk }]
+      : [{ k: 'home', l: 'Home', i: 'home' }, { k: 'calendar', l: 'Calendar', i: 'calendar_month' }, { k: 'standings', l: 'Standings', i: 'leaderboard' }, { k: 'games', l: 'Games', i: 'sports_esports' }];
+    const tabs = base.map(t => {
+      const on = t.k === active || (t.k === 'more' && (active === 'games' || active === 'settings'));
+      return {
+        ...t, flag: !!t.flag, noFlag: !t.flag, more: !!t.more,
+        color: on ? '#f3f4f6' : '#9aa1ad',
+        icolor: on ? 'oklch(0.68 0.21 25)' : '#8a919d',
+        fv: on ? "'FILL' 1" : "'FILL' 0",
+        bar: on ? 'oklch(0.62 0.24 25)' : 'transparent'
+      };
+    });
+    const gearOn = active === 'settings';
+    return {
+      desk, mob: !desk, tabs,
+      isB: v === 'b', notB: v !== 'b', showGear: v !== 'c',
+      gearColor: gearOn ? '#f3f4f6' : '#9aa1ad',
+      gearBg: gearOn ? '#1d2129' : 'transparent'
+    };
+  }
+}
+</script>
+</body>
+</html>

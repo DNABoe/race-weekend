@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&amp;display=block">
+</helmet>
+<div ref="{{ stageRef }}" onPointerDown="{{ pDown }}" onPointerMove="{{ pMove }}" onPointerUp="{{ pUp }}" onPointerCancel="{{ pUp }}" onContextMenu="{{ noMenu }}" style="position:relative;width:100%;aspect-ratio:{{ aspect }};overflow:hidden;background:#1b1e24;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:'IBM Plex Sans',sans-serif;color:#f3f4f6">
+<canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:rgba(255,255,255,0.6)">Loading circuit…</div></sc-if>
+
+<sc-if value="{{ isPlay }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:10px;top:10px;padding:8px 12px 9px;border-radius:12px;background:rgba(8,9,12,0.66);pointer-events:none;line-height:1">
+<div style="display:flex;align-items:baseline;gap:2px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:34px;line-height:0.85">{{ bigA }}</span><span style="font-family:Rajdhani,sans-serif;font-weight:600;font-size:16px;color:rgba(255,255,255,0.62)">{{ bigB }}</span></div>
+<div style="margin-top:6px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.8)">{{ line1 }}</div>
+<div style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:rgba(255,255,255,0.72)">{{ line2 }}</div>
+</div>
+<div style="position:absolute;right:10px;top:10px;display:flex;gap:6px">
+<div onClick="{{ toggleCam }}" onPointerDown="{{ stop }}" title="Camera" style="cursor:pointer;width:38px;height:38px;border-radius:10px;background:rgba(8,9,12,0.66);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">{{ camIcon }}</span></div>
+<div onClick="{{ toggleMute }}" onPointerDown="{{ stop }}" title="Sound" style="cursor:pointer;width:38px;height:38px;border-radius:10px;background:rgba(8,9,12,0.66);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">{{ muteIcon }}</span></div>
+<div onClick="{{ toMenu }}" onPointerDown="{{ stop }}" title="Quit to menu" style="cursor:pointer;width:38px;height:38px;border-radius:10px;background:rgba(8,9,12,0.66);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">close</span></div>
+</div>
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:0;right:0;top:30%;padding:0 16px;text-align:center;pointer-events:none;font-family:Rajdhani,sans-serif;font-weight:700;font-size:28px;line-height:1.1;text-shadow:0 2px 10px rgba(0,0,0,0.9)">{{ msg }}</div></sc-if>
+<div style="position:absolute;left:10px;bottom:10px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none">
+<sc-if value="{{ showWx }}" hint-placeholder-val="{{ false }}"><div style="padding:5px 10px;border-radius:999px;background:rgba(8,9,12,0.66);display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#9fd2ff"><span style="font-family:'Material Symbols Rounded';font-size:16px;line-height:1">rainy</span>{{ wxText }}</div></sc-if>
+<sc-if value="{{ showTyre }}" hint-placeholder-val="{{ false }}"><div style="padding:8px 10px;border-radius:10px;background:rgba(8,9,12,0.66);display:flex;align-items:center;gap:9px">
+<div style="width:20px;height:20px;border-radius:50%;border:3px solid {{ tyreRing }};background:#14161a;flex:none"></div>
+<div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:600"><span>{{ tyreName }}</span><span style="font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,0.75)">{{ lifePct }}</span></div><div style="width:84px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);overflow:hidden"><div style="width:{{ lifeW }};height:100%;background:{{ lifeColor }}"></div></div></div>
+</div></sc-if>
+</div>
+<div style="position:absolute;right:10px;bottom:10px;padding:7px 11px 8px;border-radius:10px;background:rgba(8,9,12,0.66);pointer-events:none;text-align:right;line-height:1;min-width:84px">
+<div style="display:flex;align-items:baseline;justify-content:flex-end;gap:4px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:30px;font-variant-numeric:tabular-nums">{{ kmh }}</span><span style="font-size:11px;color:rgba(255,255,255,0.68)">km/h</span></div>
+<sc-if value="{{ drsOn }}" hint-placeholder-val="{{ false }}"><div style="margin-top:6px;display:flex;align-items:center;justify-content:flex-end;gap:6px"><span style="font-size:11px;font-weight:700;color:#5fd4f5">DRS</span><div style="width:48px;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);overflow:hidden"><div style="width:{{ drsW }};height:100%;background:#5fd4f5"></div></div></div></sc-if>
+</div>
+<sc-if value="{{ boxIdle }}" hint-placeholder-val="{{ false }}"><div onClick="{{ box }}" onPointerDown="{{ stop }}" style="cursor:pointer;position:absolute;left:50%;bottom:12px;transform:translateX(-50%);height:40px;padding:0 16px;border-radius:999px;background:rgba(8,9,12,0.72);border:1px solid rgba(255,255,255,0.22);display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;white-space:nowrap"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1">build</span>Box</div></sc-if>
+<sc-if value="{{ boxOn }}" hint-placeholder-val="{{ false }}"><div onClick="{{ box }}" onPointerDown="{{ stop }}" style="cursor:pointer;position:absolute;left:50%;bottom:12px;transform:translateX(-50%);height:40px;padding:0 16px;border-radius:999px;background:oklch(0.58 0.23 25);display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;white-space:nowrap"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1">build</span>Boxing this lap</div></sc-if>
+<sc-if value="{{ pitOn }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:50%;bottom:12px;transform:translateX(-50%);height:40px;padding:0 16px;border-radius:999px;background:rgba(8,9,12,0.72);display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;white-space:nowrap;pointer-events:none">{{ pitText }}</div></sc-if>
+<sc-if value="{{ padOn }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:{{ ringL }};top:{{ ringT }};width:128px;height:44px;border-radius:22px;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);pointer-events:none"></div>
+<div style="position:absolute;left:{{ knobL }};top:{{ knobT }};width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.88);pointer-events:none"></div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isGrid }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:50%;top:22%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none">
+<div style="display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(8,9,12,0.82)"><sc-for list="{{ lights }}" as="l" hint-placeholder-count="5"><div style="width:28px;height:28px;border-radius:50%;background:{{ l.bg }}"></div></sc-for></div>
+<div style="padding:5px 11px;border-radius:999px;background:rgba(8,9,12,0.66);font-size:12px;font-weight:600;white-space:nowrap">{{ gridText }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMenu }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:rgba(6,7,10,0.42)">
+<div style="width:min(100%,360px);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;background:rgba(12,13,17,0.93);border:1px solid rgba(255,255,255,0.1)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px;line-height:1">Grand Prix Simulator '86</div>
+<div onClick="{{ toggleMute }}" style="cursor:pointer;width:34px;height:34px;flex:none;border-radius:10px;background:rgba(255,255,255,0.08);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">{{ muteIcon }}</span></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:3px;border-radius:11px;background:rgba(255,255,255,0.09)">
+<sc-for list="{{ modes }}" as="d" hint-placeholder-count="3"><div onClick="{{ d.pick }}" style="cursor:pointer;height:34px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:600;background:{{ d.bg }};color:{{ d.fg }}">{{ d.label }}</div></sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:8px">
+<sc-if value="{{ pickCircuit }}" hint-placeholder-val="{{ true }}"><div onClick="{{ prevC }}" style="cursor:pointer;width:34px;height:46px;flex:none;border-radius:10px;background:rgba(255,255,255,0.08);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:22px;line-height:1">chevron_left</span></div></sc-if>
+<div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px">
+<sc-if value="{{ hasOutline }}" hint-placeholder-val="{{ true }}"><img src="{{ outline }}" alt="" style="width:46px;height:46px;flex:none;object-fit:contain;display:block"></sc-if>
+<div style="min-width:0;display:flex;flex-direction:column;gap:2px">
+<div style="font-size:11px;color:rgba(255,255,255,0.66)">{{ cRound }}</div>
+<div style="font-size:15px;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cName }}</div>
+<div style="font-size:11px;color:rgba(255,255,255,0.66);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cSub }}</div>
+</div>
+</div>
+<sc-if value="{{ pickCircuit }}" hint-placeholder-val="{{ true }}"><div onClick="{{ nextC }}" style="cursor:pointer;width:34px;height:46px;flex:none;border-radius:10px;background:rgba(255,255,255,0.08);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:22px;line-height:1">chevron_right</span></div></sc-if>
+</div>
+<sc-if value="{{ isSeason }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0.1)">
+<sc-for list="{{ standings }}" as="r" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:9px;padding:7px 2px;border-bottom:1px solid rgba(255,255,255,0.1);font-size:13px;font-weight:{{ r.weight }}"><span style="width:20px;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,0.62)">{{ r.pos }}</span><span style="width:3px;height:14px;border-radius:2px;background:{{ r.color }}"></span><span style="flex:1;min-width:0">{{ r.name }}</span><span style="font-family:'IBM Plex Mono',monospace">{{ r.pts }}</span></div></sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.75)"><span style="font-family:'Material Symbols Rounded';font-size:17px;line-height:1">{{ fcIcon }}</span>{{ fcText }}</div>
+</sc-if>
+<sc-if value="{{ showWeather }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Weather</div>
+<div style="display:flex;gap:4px;padding:3px;border-radius:11px;background:rgba(255,255,255,0.09)"><sc-for list="{{ weathers }}" as="d" hint-placeholder-count="3"><div onClick="{{ d.pick }}" style="cursor:pointer;flex:1;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:600;background:{{ d.bg }};color:{{ d.fg }}"><span style="font-family:'Material Symbols Rounded';font-size:17px;line-height:1">{{ d.icon }}</span>{{ d.label }}</div></sc-for></div></div>
+</sc-if>
+<sc-if value="{{ showDiff }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Rivals</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:3px;border-radius:11px;background:rgba(255,255,255,0.09)"><sc-for list="{{ diffs }}" as="d" hint-placeholder-count="3"><div onClick="{{ d.pick }}" style="cursor:pointer;height:34px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:600;background:{{ d.bg }};color:{{ d.fg }}">{{ d.label }}</div></sc-for></div></div>
+</sc-if>
+<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px"><span style="color:rgba(255,255,255,0.66)">{{ bestLabel }}</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ bestVal }}</span></div>
+<sc-if value="{{ canStart }}" hint-placeholder-val="{{ true }}"><div onClick="{{ start }}" style="cursor:pointer;height:46px;border-radius:12px;background:oklch(0.58 0.23 25);color:#ffffff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;font-variation-settings:'FILL' 1">flag</span>{{ startText }}</div></sc-if>
+<sc-if value="{{ seasonOver }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="font-size:14px;font-weight:600">{{ champText }}</div><div onClick="{{ resetSeason }}" style="cursor:pointer;height:44px;border-radius:12px;background:oklch(0.58 0.23 25);display:grid;place-items:center;font-size:14px;font-weight:600">Start a new season</div></div></sc-if>
+<sc-if value="{{ canReset }}" hint-placeholder-val="{{ false }}"><div onClick="{{ resetSeason }}" style="cursor:pointer;align-self:center;font-size:12px;color:rgba(255,255,255,0.62);text-decoration:underline">Restart the season</div></sc-if>
+<div style="font-size:11px;line-height:1.45;color:rgba(255,255,255,0.6)">{{ hint }}</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(6,7,10,0.86);display:flex;align-items:center;justify-content:center;padding:14px">
+<div style="width:min(100%,380px);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.62)">Chequered flag · {{ rGp }}</div>
+<div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:64px;line-height:0.8">{{ rPos }}</span><span style="font-size:15px;color:rgba(255,255,255,0.72)">{{ rOf }}</span></div>
+<div style="display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0.12)">
+<sc-for list="{{ rRows }}" as="r" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:9px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.12);font-size:13px;font-weight:{{ r.weight }};background:{{ r.bg }}"><span style="width:18px;font-family:'IBM Plex Mono',monospace;color:rgba(255,255,255,0.62)">{{ r.pos }}</span><span style="width:3px;height:14px;border-radius:2px;background:{{ r.color }}"></span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span><span style="font-size:11px;color:rgba(255,255,255,0.6)">{{ r.pits }}</span><span style="width:76px;text-align:right;font-family:'IBM Plex Mono',monospace">{{ r.time }}</span><sc-if value="{{ r.showPts }}" hint-placeholder-val="{{ false }}"><span style="width:30px;text-align:right;font-family:'IBM Plex Mono',monospace;color:#5fd38d">{{ r.pts }}</span></sc-if></div></sc-for>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px"><span style="color:rgba(255,255,255,0.72)">Your best lap</span><span style="display:flex;align-items:center;gap:8px"><sc-if value="{{ rNew }}" hint-placeholder-val="{{ false }}"><span style="padding:2px 7px;border-radius:6px;background:#5fd38d;color:#08130c;font-size:11px;font-weight:700">New best</span></sc-if><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ rBest }}</span></span></div>
+<sc-if value="{{ rSeason }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:rgba(255,255,255,0.8)">{{ rStand }}</div></sc-if>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px">
+<sc-if value="{{ rAgain }}" hint-placeholder-val="{{ true }}"><div onClick="{{ again }}" style="cursor:pointer;height:44px;padding:0 18px;border-radius:12px;background:oklch(0.58 0.23 25);color:#ffffff;display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">replay</span>Race again</div></sc-if>
+<sc-if value="{{ rNext }}" hint-placeholder-val="{{ false }}"><div onClick="{{ toMenu }}" style="cursor:pointer;height:44px;padding:0 18px;border-radius:12px;background:oklch(0.58 0.23 25);color:#ffffff;display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600">{{ rNextText }}<span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">arrow_forward</span></div></sc-if>
+<div onClick="{{ toMenu }}" style="cursor:pointer;height:44px;padding:0 16px;border-radius:12px;background:rgba(255,255,255,0.1);color:#ffffff;display:flex;align-items:center;font-size:14px;font-weight:600">Menu</div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:880,&quot;height&quot;:550},&quot;calendar&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{ id: string; km: number; name: string; gp: string; short: string; round: number; season: number }&gt;&quot;},&quot;rivals&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{ code: string; name: string; color: string }&gt;&quot;},&quot;nextRound&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const DEMO_CAL = [
+  { id: 'silverstone', km: 5.891, name: 'Silverstone Circuit', gp: 'British Grand Prix', short: 'Britain', round: 1, season: 2026 },
+  { id: 'monaco', km: 3.337, name: 'Circuit de Monaco', gp: 'Monaco Grand Prix', short: 'Monaco', round: 2, season: 2026 },
+  { id: 'suzuka', km: 5.807, name: 'Suzuka International Racing Course', gp: 'Japanese Grand Prix', short: 'Japan', round: 3, season: 2026 },
+  { id: 'spa', km: 7.004, name: 'Circuit de Spa-Francorchamps', gp: 'Belgian Grand Prix', short: 'Belgium', round: 4, season: 2026 }
+];
+const DEMO_RIVALS = [['NOR', 'Lando Norris', '#FF8000'], ['PIA', 'Oscar Piastri', '#FF8000'], ['RUS', 'George Russell', '#27F4D2'], ['VER', 'Max Verstappen', '#3671C6']].map(([code, name, color]) => ({ code, name, color }));
+const WX = { dry: ['Dry', 'sunny'], wet: ['Wet', 'rainy'], changing: ['Changing', 'partly_cloudy_day'] };
+const SEL = on => ({ bg: on ? '#f3f4f6' : 'transparent', fg: on ? '#0e1016' : 'rgba(255,255,255,0.82)' });
+
+class Component extends DCLogic {
+  state = { s: null, mode: 'race', ci: 0, weather: 'dry', diff: 'medium', cam: null, muted: false, pad: null, portrait: false, season: null };
+  stageRef = React.createRef();
+  canvasRef = React.createRef();
+  inp = { steer: 0, brake: false };
+  keys = new Set();
+  kbs = 0;
+  touch = null;
+  tracks = {};
+  scenes = {};
+  camF = {};
+
+  cal() { const c = this.props.calendar; return c && c.length ? c : DEMO_CAL; }
+  rivals() { const r = this.props.rivals; return r && r.length >= 4 ? r.slice(0, 4) : DEMO_RIVALS; }
+  codes() { return ['YOU', ...this.rivals().map(r => r.code)]; }
+  circ() { const cal = this.cal(), st = this.state; return cal[Math.min(st.mode === 'season' && st.season ? st.season.next : st.ci, cal.length - 1)]; }
+  wxFor() { const st = this.state, c = this.circ(); return st.mode === 'season' ? this.E.seasonWeather(c.season || 2026, c.round || 1) : st.mode === 'tt' ? (st.weather === 'wet' ? 'wet' : 'dry') : st.weather; }
+  camMode() { return this.state.cam || (this.state.portrait ? 'follow' : 'whole'); }
+  savePrefs() { const st = this.state; this.E.store.set('gp86-prefs', { mode: st.mode, diff: st.diff, weather: st.weather, cam: st.cam }); }
+  build() {
+    const c = this.circ(), st = this.state;
+    const t = this.tracks[c.id] || (this.tracks[c.id] = this.Tk.buildCircuit(c.id));
+    if (!this.scenes[c.id]) { const ks = Object.keys(this.scenes); if (ks.length > 2) delete this.scenes[ks[0]]; this.scenes[c.id] = this.Sc.bakeScene(t); }
+    this.scene = this.scenes[c.id]; this.skid = this.D.skidLayer(t, this.scene.S); this.camF = {}; this.applied = false;
+    this.race = new this.E.Race({ circuit: c, track: t, mode: st.mode === 'tt' ? 'tt' : 'race', rivals: this.rivals(), difficulty: st.diff, weather: this.wxFor(), round: c.round });
+    this.setState({ s: this.race.snap() });
+  }
+  componentDidMount() {
+    const base = new URL('.', location.href).href;
+    Promise.all(['gp-race.js', 'gp-track.js', 'gp-scene.js', 'gp-draw.js', 'pp-audio.js', 'rw-tracks.js'].map(f => import(base + f))).then(([E, Tk, Sc, D, A, T]) => {
+      if (this.dead) return;
+      Object.assign(this, { E, Tk, Sc, D, T, snd: new A.Sound() });
+      const pr = E.store.get('gp86-prefs') || {}, cal = this.cal(), ci = Math.max(0, cal.findIndex(c => c.round === this.props.nextRound));
+      this.setState({ muted: this.snd.muted, mode: pr.mode || 'race', diff: pr.diff || 'medium', weather: pr.weather || 'dry', cam: pr.cam || null, ci, season: E.seasonLoad(cal[0].season || 2026, this.codes()) }, () => this.build());
+      let last = performance.now(), lastS = 0;
+      const frame = () => {
+        cancelAnimationFrame(this.raf); clearTimeout(this.to);
+        if (this.dead) return;
+        const now = performance.now(), dt0 = this.paused ? 0 : Math.min(1, Math.max(0, (now - last) / 1000));
+        let left = dt0; last = now;
+        const r = this.race;
+        if (r) {
+          while (left > 1e-4) { const dt = Math.min(1 / 60, left); left -= dt; this.readInput(dt); r.update(dt, this.inp); }
+          r.events.splice(0).forEach(e => this.snd.event(e));
+          this.snd.update(r.audio());
+          if (r.result && !this.applied) { this.applied = true; if (this.state.mode === 'season') this.applySeason(r.result); }
+          this.draw(Math.min(0.1, dt0));
+          if (now - lastS > 45) { lastS = now; this.setState({ s: r.snap() }); }
+        }
+        this.raf = requestAnimationFrame(frame);
+        this.to = setTimeout(frame, 40);
+      };
+      frame();
+    }).catch(e => console.warn('Grand Prix 86 failed to load: ' + e));
+    window.addEventListener('keydown', this.onKey); window.addEventListener('keyup', this.onKey); window.addEventListener('blur', this.onBlur);
+    document.addEventListener('visibilitychange', this.onVis);
+    if (window.ResizeObserver && this.stageRef.current) { this.ro = new ResizeObserver(es => { const p = es[0].contentRect.width < 560; if (p !== this.state.portrait) this.setState({ portrait: p }); }); this.ro.observe(this.stageRef.current); }
+  }
+  componentWillUnmount() {
+    this.dead = true; cancelAnimationFrame(this.raf); clearTimeout(this.to);
+    window.removeEventListener('keydown', this.onKey); window.removeEventListener('keyup', this.onKey); window.removeEventListener('blur', this.onBlur);
+    document.removeEventListener('visibilitychange', this.onVis);
+    if (this.ro) this.ro.disconnect();
+    if (this.snd) this.snd.close();
+  }
+  onVis = () => { this.paused = document.hidden; this.keys.clear(); this.touch = null; const c = this.snd && this.snd.ctx; if (c) document.hidden ? c.suspend() : c.resume(); };
+  draw(dt) {
+    const cv = this.canvasRef.current, r = this.race;
+    if (!cv || !r) return;
+    const cw = cv.clientWidth || 380, chh = cv.clientHeight || 507, k = Math.min(2, window.devicePixelRatio || 1), W = Math.round(cw * k), H = Math.round(chh * k);
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const ctx = cv.getContext('2d'), playing = r.state !== 'intro' && !r.result;
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    const fit = this.D.fitCam(r.t, cw, chh, playing ? [58, 10, 64, 10] : [12, 12, 12, 12]);
+    let cam = fit;
+    if (playing && this.camMode() === 'follow') cam = this.D.followCam(this.camF, fit, r.player, dt); else this.camF.follow = false;
+    this.D.drawFrame(ctx, cw, chh, r.view(), this.scene, this.skid, cam, { tags: true });
+  }
+  applySeason(res) {
+    const s0 = this.state.season, c = this.race.o.circuit, s = { ...s0, pts: { ...s0.pts }, done: [...s0.done] };
+    res.rows.forEach(r => { s.pts[r.code] = (s.pts[r.code] || 0) + r.pts; });
+    s.done.push({ round: c.round, order: res.rows.map(r => r.code) }); s.next = Math.min(this.cal().length, s.next + 1);
+    this.E.seasonSave(s); this.setState({ season: s });
+  }
+  readInput(dt) {
+    const t = this.touch, K = this.keys;
+    if (t) { if (!t.moved && performance.now() - t.t0 > 140) t.brake = true; this.inp.steer = t.steer; this.inp.brake = t.brake || t.second; return; }
+    const kb = (K.has('r') ? 1 : 0) - (K.has('l') ? 1 : 0);
+    this.kbs += (kb - this.kbs) * Math.min(1, dt * (kb ? 7 : 12));
+    this.inp.steer = this.kbs; this.inp.brake = K.has('b');
+  }
+  onKey = e => {
+    const k = e.key, down = e.type === 'keydown', r = this.race;
+    if (k === 'Escape') { if (down && this.props.onClose) this.props.onClose(); return; }
+    if (down && r && r.state === 'intro' && (k === 'Enter' || k === ' ')) { e.preventDefault(); this.start(); return; }
+    if (down && (k === 'p' || k === 'P' || k === 'x' || k === 'X')) { this.box(); return; }
+    if (down && (k === 'c' || k === 'C')) { this.toggleCam(); return; }
+    if (down && (k === 'm' || k === 'M')) { this.toggleMute(); return; }
+    const m = { ArrowLeft: 'l', a: 'l', A: 'l', ArrowRight: 'r', d: 'r', D: 'r', ArrowDown: 'b', s: 'b', S: 'b', ' ': 'b' }[k];
+    if (!m) return;
+    e.preventDefault();
+    down ? this.keys.add(m) : this.keys.delete(m);
+  };
+  onBlur = () => { this.keys.clear(); this.touch = null; this.setState({ pad: null }); };
+  local(e) { const b = this.stageRef.current.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; }
+  pDown = e => {
+    const r = this.race;
+    if (!r || (r.state !== 'race' && r.state !== 'grid')) return;
+    if (this.snd) this.snd.ensure();
+    const [x, y] = this.local(e);
+    if (!this.touch) {
+      this.touch = { id: e.pointerId, x0: x, y0: y, moved: false, t0: performance.now(), steer: 0, brake: false, second: false, sid: null };
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+      this.setState({ pad: { x0: x, y0: y, x } });
+    } else if (e.pointerId !== this.touch.id) { this.touch.second = true; this.touch.sid = e.pointerId; }
+  };
+  pMove = e => {
+    const t = this.touch;
+    if (!t || e.pointerId !== t.id) return;
+    const [x, y] = this.local(e), dx = x - t.x0;
+    if (Math.abs(dx) > 10 || Math.abs(y - t.y0) > 16) { t.moved = true; t.brake = false; }
+    t.steer = Math.abs(dx) < 6 ? 0 : Math.max(-1, Math.min(1, (dx - Math.sign(dx) * 6) / 60));
+    this.setState({ pad: { x0: t.x0, y0: t.y0, x } });
+  };
+  pUp = e => {
+    const t = this.touch;
+    if (!t) return;
+    if (e.pointerId === t.sid) { t.second = false; t.sid = null; return; }
+    if (e.pointerId !== t.id) return;
+    this.touch = null; this.setState({ pad: null });
+  };
+  noMenu = e => e.preventDefault();
+  stop = e => e.stopPropagation();
+  start = () => { const r = this.race; if (!r || r.state !== 'intro') return; if (this.snd) this.snd.ensure(); if (this.state.mode === 'season' && this.state.season.next >= this.cal().length) return; r.start(); this.setState({ s: r.snap() }); };
+  again = () => { if (!this.E) return; this.build(); this.start(); };
+  toMenu = () => { if (this.E) this.build(); };
+  box = () => { if (this.race) this.race.box(); };
+  set(patch) { this.setState(patch, () => { this.savePrefs(); this.build(); }); }
+  stepC(d) { const n = this.cal().length; this.set({ ci: (this.state.ci + d + n) % n }); }
+  prevC = () => this.stepC(-1);
+  nextC = () => this.stepC(1);
+  resetSeason = () => { const cal = this.cal(), s = { season: cal[0].season || 2026, codes: this.codes(), next: 0, pts: Object.fromEntries(this.codes().map(c => [c, 0])), done: [] }; this.E.seasonSave(s); this.setState({ season: s }, () => this.build()); };
+  toggleCam = () => { if (!this.E) return; this.setState({ cam: this.camMode() === 'follow' ? 'whole' : 'follow' }, () => this.savePrefs()); };
+  toggleMute = () => { if (!this.snd) return; this.snd.ensure(); const m = !this.state.muted; this.snd.setMuted(m); this.setState({ muted: m }); };
+
+  renderVals() {
+    const st = this.state, r = this.race, s = st.s;
+    const base = { stageRef: this.stageRef, canvasRef: this.canvasRef, pDown: this.pDown, pMove: this.pMove, pUp: this.pUp, noMenu: this.noMenu, stop: this.stop, toggleMute: this.toggleMute, toggleCam: this.toggleCam, toMenu: this.toMenu, box: this.box, start: this.start, again: this.again, prevC: this.prevC, nextC: this.nextC, resetSeason: this.resetSeason, muteIcon: st.muted ? 'volume_off' : 'volume_up', aspect: st.portrait ? '3 / 4' : '16 / 10' };
+    if (!r || !s) return { ...base, loading: true, isPlay: false, isGrid: false, isMenu: false, isDone: false };
+    const F = this.E.fmt, tt = r.mode === 'tt', res = s.result, pad = st.pad, dx = pad ? Math.max(-64, Math.min(64, pad.x - pad.x0)) : 0, cal = this.cal(), c = this.circ(), season = st.season;
+    const life = Math.max(0, Math.min(1, 1 - s.wear)), wx = this.wxFor(), cond = wx === 'wet' ? 'wet' : 'dry', best = (this.E.store.get(`gp86-best-v1-${c.id}-${cond}`) || {}).lap;
+    const name = code => code === 'YOU' ? 'You' : ((this.rivals().find(x => x.code === code) || {}).name || code);
+    const color = code => code === 'YOU' ? '#ffcc00' : ((this.rivals().find(x => x.code === code) || {}).color || '#8a919d');
+    const table = Object.entries(season ? season.pts : {}).sort((a, b) => b[1] - a[1]).map(([code, pts], k) => ({ pos: String(k + 1), name: name(code), color: color(code), pts: String(pts), weight: code === 'YOU' ? 700 : 500, code }));
+    const over = st.mode === 'season' && season && season.next >= cal.length, myStand = table.findIndex(x => x.code === 'YOU');
+    const out = {
+      ...base, loading: false,
+      isMenu: s.state === 'intro', isGrid: s.state === 'grid', isPlay: s.state === 'race' || (s.state === 'done' && !res), isDone: s.state === 'done' && !!res,
+      bigA: tt ? 'Lap ' + s.lap : 'P' + s.pos, bigB: tt ? '' : '/' + s.total, line1: tt ? F(s.lapTime) : `Lap ${s.lap}/${s.laps}`, line2: tt ? 'Best ' + F(s.best) : F(s.lapTime),
+      camIcon: this.camMode() === 'follow' ? 'zoom_out_map' : 'zoom_in', hasMsg: !!s.msg, msg: s.msg,
+      showWx: s.wet > 0.12 || s.rain > 0.05, wxText: (s.rain > 0.05 ? 'Raining' : 'Drying') + ' · track ' + Math.round(s.wet * 100) + '% wet',
+      showTyre: !tt, tyreName: s.tyre === 'wet' ? 'Wets' : 'Slicks', tyreRing: s.tyre === 'wet' ? '#3b8ee8' : '#f2c14e', lifePct: Math.round(life * 100) + '%', lifeW: Math.round(life * 100) + '%', lifeColor: life > 0.5 ? '#5fd38d' : life > 0.25 ? '#f2c14e' : '#ff5a4f',
+      kmh: String(s.kmh), drsOn: s.boost > 0, drsW: Math.round(s.boost * 100) + '%',
+      boxIdle: !tt && s.state === 'race' && !s.pit && !s.box, boxOn: !tt && s.state === 'race' && !s.pit && s.box, pitOn: !!s.pit, pitText: s.pit === 'stop' ? 'Pit stop · ' + s.pitLeft.toFixed(1) + ' s' : 'Pit lane',
+      padOn: !!pad, ringL: (pad ? pad.x0 - 64 : 0) + 'px', ringT: (pad ? pad.y0 - 22 : 0) + 'px', knobL: (pad ? pad.x0 + dx - 18 : 0) + 'px', knobT: (pad ? pad.y0 - 18 : 0) + 'px',
+      lights: [0, 1, 2, 3, 4].map(i => ({ bg: i < s.lights && !s.out ? '#ff2a2a' : '#262930' })), gridText: s.lights < 5 ? 'Get ready' : 'Wait for lights out',
+      modes: [['race', 'Race'], ['season', 'Season'], ['tt', 'Time trial']].map(([k, label]) => ({ label, ...SEL(st.mode === k), pick: () => this.set({ mode: k }) })),
+      pickCircuit: st.mode !== 'season', isSeason: st.mode === 'season', outline: this.T.trackImg(c.id, 'md', 'dark'), hasOutline: !!this.T.trackImg(c.id, 'md', 'dark'),
+      cRound: (st.mode === 'season' ? `Round ${Math.min(cal.length, season.next + 1)} of ${cal.length}` : `Round ${c.round}`) + (c.round === this.props.nextRound ? ' · next Grand Prix' : ''), cName: c.gp, cSub: c.name,
+      standings: table, fcIcon: WX[wx][1], fcText: 'Forecast for this round: ' + WX[wx][0].toLowerCase(),
+      showWeather: st.mode !== 'season', weathers: (tt ? ['dry', 'wet'] : ['dry', 'wet', 'changing']).map(k => ({ label: WX[k][0], icon: WX[k][1], ...SEL(wx === k), pick: () => this.set({ weather: k }) })),
+      showDiff: st.mode !== 'tt', diffs: [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']].map(([k, label]) => ({ label, ...SEL(st.diff === k), pick: () => this.set({ diff: k }) })),
+      bestLabel: tt && r.ghostData ? 'Best lap here (your ghost drives it)' : 'Your best lap here' + (cond === 'wet' ? ' in the wet' : ''), bestVal: F(best),
+      canStart: !over, startText: st.mode === 'season' ? 'Start round ' + Math.min(cal.length, season.next + 1) : tt ? 'Start time trial' : 'Start race',
+      seasonOver: over, champText: over && table.length ? (table[0].code === 'YOU' ? 'You are the champion.' : table[0].name + ' takes the title. You finished P' + (myStand + 1) + '.') : '',
+      canReset: st.mode === 'season' && !over && !!season && season.done.length > 0,
+      hint: tt ? 'Drag left or right to steer, hold still to brake. Keys: ← → steer, ↓ or Space brake, C camera.' : 'Drag left or right to steer, hold still to brake, tap Box to pit. Keys: ← → steer, ↓ or Space brake, P box, C camera.',
+      rGp: '', rPos: '', rOf: '', rRows: [], rBest: '', rNew: false, rSeason: false, rStand: '', rAgain: true, rNext: false, rNextText: ''
+    };
+    if (res) {
+      const sea = st.mode === 'season', more = sea && season.next < cal.length;
+      Object.assign(out, {
+        rGp: r.o.circuit.short || r.o.circuit.gp, rPos: 'P' + res.pos, rOf: 'of ' + res.total, rBest: F(res.bestLap), rNew: res.newBest,
+        rRows: res.rows.map(x => ({ pos: String(x.pos), name: x.you ? 'You' : x.name || x.code, color: x.color, pits: x.pits === 1 ? '1 stop' : x.pits + ' stops', time: x.pos === 1 ? F(x.time) : '+' + x.gap.toFixed(3), pts: '+' + x.pts, showPts: sea, weight: x.you ? 700 : 500, bg: x.you ? 'rgba(255,255,255,0.08)' : 'transparent' })),
+        rSeason: sea, rStand: sea ? `Championship: P${myStand + 1} with ${season.pts.YOU} points after ${season.done.length} of ${cal.length} rounds` : '',
+        rAgain: !sea, rNext: sea, rNextText: more ? 'Next round' : 'Final standings'
+      });
+    }
+    return out;
+  }
+}
+</script>
+</body>
+</html>

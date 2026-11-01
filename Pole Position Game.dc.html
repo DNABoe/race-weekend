@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&amp;display=block">
+</helmet>
+<div ref="{{ wrapRef }}" style="position:relative;width:100%;aspect-ratio:380/540;overflow:hidden;background:#07080b">
+<div ref="{{ stageRef }}" onPointerDown="{{ pDown }}" onPointerMove="{{ pMove }}" onPointerUp="{{ pUp }}" onPointerCancel="{{ pUp }}" onContextMenu="{{ noMenu }}" style="position:absolute;left:0;top:0;width:380px;height:540px;transform:scale({{ k }});transform-origin:0 0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:'IBM Plex Sans',sans-serif;color:#f3f4f6">
+<canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:rgba(255,255,255,0.6)">Loading circuit…</div></sc-if>
+
+<sc-if value="{{ isRace }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:10px;top:10px;padding:8px 12px 9px;border-radius:12px;background:rgba(8,9,12,0.62);pointer-events:none;line-height:1">
+<div style="display:flex;align-items:baseline;gap:2px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:40px;line-height:0.85">{{ pos }}</span><span style="font-family:Rajdhani,sans-serif;font-weight:600;font-size:17px;color:rgba(255,255,255,0.6)">{{ total }}</span></div>
+<div style="margin-top:6px;font-size:12px;font-weight:600;color:rgba(255,255,255,0.78)">{{ lap }}</div>
+</div>
+<sc-if value="{{ slip }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:50%;top:122px;transform:translateX(-50%);padding:5px 11px;border-radius:999px;background:rgba(8,9,12,0.62);font-size:12px;font-weight:600;color:#8fdcff;pointer-events:none;display:flex;align-items:center;gap:5px;white-space:nowrap"><span style="font-family:'Material Symbols Rounded';font-size:16px;line-height:1">air</span>Slipstream</div></sc-if>
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:0;right:0;top:34%;text-align:center;pointer-events:none;font-family:Rajdhani,sans-serif;font-weight:700;font-size:30px;line-height:1.1;text-shadow:0 2px 10px rgba(0,0,0,0.85)">{{ msg }}</div></sc-if>
+<div style="position:absolute;left:10px;bottom:10px;display:flex;align-items:flex-end;gap:8px">
+<div style="padding:7px 10px;border-radius:10px;background:rgba(8,9,12,0.62);pointer-events:none;line-height:1.3">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600">{{ lapTime }}</div>
+<div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,0.68)">{{ best }}</div>
+</div>
+<div onClick="{{ toggleMute }}" onPointerDown="{{ stop }}" style="cursor:pointer;width:38px;height:38px;border-radius:10px;background:rgba(8,9,12,0.62);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">{{ muteIcon }}</span></div>
+</div>
+<div style="position:absolute;right:10px;bottom:10px;padding:7px 11px 8px;border-radius:10px;background:rgba(8,9,12,0.62);pointer-events:none;text-align:right;line-height:1">
+<div style="display:flex;align-items:baseline;justify-content:flex-end;gap:4px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:32px;font-variant-numeric:tabular-nums">{{ kmh }}</span><span style="font-size:11px;color:rgba(255,255,255,0.68)">km/h</span></div>
+<div style="margin-top:5px;font-size:11px;color:rgba(255,255,255,0.68)">Gear <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#ffffff">{{ gear }}</span></div>
+</div>
+<sc-if value="{{ braking }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:50%;bottom:16px;transform:translateX(-50%);padding:6px 12px;border-radius:999px;background:oklch(0.58 0.23 25);font-size:12px;font-weight:700;letter-spacing:0.05em;pointer-events:none">BRAKE</div></sc-if>
+<sc-if value="{{ padOn }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:{{ ringL }};top:{{ ringT }};width:128px;height:44px;border-radius:22px;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);pointer-events:none"></div>
+<div style="position:absolute;left:{{ knobL }};top:{{ knobT }};width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.88);pointer-events:none"></div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isGrid }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:50%;top:24%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none">
+<div style="display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(8,9,12,0.82)">
+<sc-for list="{{ lights }}" as="l" hint-placeholder-count="5"><div style="width:30px;height:30px;border-radius:50%;background:{{ l.bg }}"></div></sc-for>
+</div>
+<div style="padding:5px 11px;border-radius:999px;background:rgba(8,9,12,0.62);font-size:12px;font-weight:600;white-space:nowrap">{{ gridText }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isIntro }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;gap:11px;padding:16px 16px 14px;background:linear-gradient(to bottom,rgba(6,7,10,0) 0%,rgba(6,7,10,0.5) 26%,rgba(6,7,10,0.94) 50%)">
+<div onClick="{{ toggleMute }}" style="position:absolute;left:12px;top:12px;cursor:pointer;width:38px;height:38px;border-radius:10px;background:rgba(8,9,12,0.62);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">{{ muteIcon }}</span></div>
+<div style="display:flex;align-items:center;gap:12px">
+<div style="flex:1;min-width:0">
+<div style="font-size:12px;color:rgba(255,255,255,0.72)">{{ roundLine }}</div>
+<div style="margin-top:3px;font-family:Rajdhani,sans-serif;font-weight:700;font-size:30px;line-height:1">{{ gp }}</div>
+<div style="margin-top:4px;font-size:12px;color:rgba(255,255,255,0.72)">{{ circuitName }}</div>
+</div>
+<sc-if value="{{ hasOutline }}" hint-placeholder-val="{{ true }}"><img src="{{ outline }}" alt="" style="flex:none;width:62px;height:62px;object-fit:contain;display:block"></sc-if>
+</div>
+<div style="font-size:13px;color:rgba(255,255,255,0.86)">{{ info }}</div>
+<div style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.62)">Weekend challenge</span><span style="font-size:11px;font-weight:600;color:{{ chColor }}">{{ chNote }}</span></div>
+<div style="font-size:14px;font-weight:600;line-height:1.35">{{ chText }}</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:rgba(255,255,255,0.62)">Your best lap here</span><span style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600">{{ bestLapAll }}</span></div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:11px;color:rgba(255,255,255,0.62)">Your best finish</span><span style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600">{{ bestPosAll }}</span></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:3px;border-radius:11px;background:rgba(255,255,255,0.09)">
+<sc-for list="{{ diffs }}" as="d" hint-placeholder-count="3"><div onClick="{{ d.pick }}" style="cursor:pointer;height:34px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:600;background:{{ d.bg }};color:{{ d.fg }}">{{ d.label }}</div></sc-for>
+</div>
+<div onClick="{{ start }}" style="cursor:pointer;height:46px;border-radius:12px;background:oklch(0.58 0.23 25);color:#ffffff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;font-variation-settings:'FILL' 1">flag</span>Start race</div>
+<div style="display:flex;flex-direction:column;gap:3px;font-size:11px;line-height:1.4;color:rgba(255,255,255,0.62)">
+<div style="display:flex;align-items:center;gap:6px"><span style="font-family:'Material Symbols Rounded';font-size:15px;line-height:1">touch_app</span>Drag to steer, hold still to brake. The car accelerates by itself.</div>
+<div style="display:flex;align-items:center;gap:6px"><span style="font-family:'Material Symbols Rounded';font-size:15px;line-height:1">keyboard</span>← → steer · ↓ or Space brake · Esc exit</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(6,7,10,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center">
+<div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.62)">Chequered flag · {{ gpShort }}</div>
+<div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:84px;line-height:0.8">{{ rPos }}</span><span style="font-size:15px;color:rgba(255,255,255,0.72)">{{ rOf }}</span></div>
+<div style="font-size:15px;font-weight:600;color:{{ rGainColor }}">{{ rGain }}</div>
+<div style="width:100%;max-width:280px;display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0.12);text-align:left">
+<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,0.12);font-size:14px"><span style="color:rgba(255,255,255,0.72)">Race time</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ rTime }}</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,0.12);font-size:14px"><span style="color:rgba(255,255,255,0.72)">Best lap</span><span style="display:flex;align-items:center;gap:8px"><sc-if value="{{ rNewLap }}" hint-placeholder-val="{{ false }}"><span style="padding:2px 7px;border-radius:6px;background:#5fd38d;color:#08130c;font-size:11px;font-weight:700">New best</span></sc-if><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ rBest }}</span></span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,0.12);font-size:14px"><span style="color:rgba(255,255,255,0.72)">Contacts</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ rContacts }}</span></div>
+</div>
+<div style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:{{ rChColor }}"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1">{{ rChIcon }}</span>{{ rCh }}</div>
+<div style="display:flex;gap:10px;margin-top:4px">
+<div onClick="{{ again }}" style="cursor:pointer;height:44px;padding:0 18px;border-radius:12px;background:oklch(0.58 0.23 25);color:#ffffff;display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">replay</span>Race again</div>
+<div onClick="{{ setup }}" style="cursor:pointer;height:44px;padding:0 16px;border-radius:12px;background:rgba(255,255,255,0.1);color:#ffffff;display:flex;align-items:center;font-size:14px;font-weight:600">Change difficulty</div>
+</div>
+</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:380,&quot;height&quot;:540},&quot;circuit&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{ id: string; km: number; name: string; gp: string; short: string; round: number; season: number; tod: 'day' | 'dusk' | 'night' }&quot;},&quot;rivals&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{ code: string; name: string; color: string; team: string }&gt;&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const DEMO_CIRCUIT = { id: 'suzuka', km: 5.807, name: 'Suzuka International Racing Course', gp: 'Japanese Grand Prix', short: 'Japan', round: 0, season: 2026, tod: 'day' };
+const PALETTE = ['#3671C6', '#E80020', '#27F4D2', '#FF8000', '#229971', '#0093CC', '#64C4FF', '#B6BABD', '#52E252', '#6692FF', '#909090'];
+const DEMO_RIVALS = Array.from({ length: 21 }, (_, i) => ({ code: 'R' + String(i + 1).padStart(2, '0'), name: 'Rival ' + (i + 1), color: PALETTE[Math.floor(i / 2) % PALETTE.length] }));
+
+class Component extends DCLogic {
+  state = { s: null, diff: 'medium', muted: false, pad: null, k: 1 };
+  k = 1;
+  wrapRef = React.createRef();
+  stageRef = React.createRef();
+  canvasRef = React.createRef();
+  inp = { steer: 0, brake: false };
+  keys = new Set();
+  kbs = 0;
+  touch = null;
+
+  circ() { return this.props.circuit && this.props.circuit.id ? this.props.circuit : DEMO_CIRCUIT; }
+  build() {
+    const c = this.circ();
+    this.builtFor = c.id + '|' + c.tod;
+    this.outline = this.T.trackImg(c.id, 'md', 'dark');
+    const rv = this.props.rivals && this.props.rivals.length ? this.props.rivals : DEMO_RIVALS;
+    this.race = new this.E.Race({ circuitId: c.id, km: c.km, tod: c.tod, rivals: rv, difficulty: this.state.diff, season: c.season, round: c.round });
+    this.setState({ s: this.race.snap() });
+  }
+  componentDidMount() {
+    const base = new URL('.', location.href).href;
+    Promise.all([import(base + 'pp-engine.js'), import(base + 'pp-audio.js'), import(base + 'rw-tracks.js')]).then(([E, A, T]) => {
+      if (this.dead) return;
+      this.E = E; this.T = T; this.snd = new A.Sound();
+      const d = E.store.get('pp-diff');
+      this.setState({ muted: this.snd.muted, diff: d === 'easy' || d === 'hard' ? d : 'medium' }, () => this.build());
+      let last = performance.now(), lastS = 0;
+      const frame = () => {
+        cancelAnimationFrame(this.raf); clearTimeout(this.to);
+        if (this.dead) return;
+        const now = performance.now();
+        let left = this.paused ? 0 : Math.min(1, Math.max(0, (now - last) / 1000)); last = now;
+        if (this.race) {
+          while (left > 1e-4) { const dt = Math.min(1 / 60, left); left -= dt; this.readInput(dt); this.race.update(dt, this.inp); }
+          this.race.events.splice(0).forEach(e => this.snd.event(e));
+          this.snd.update(this.race.audio());
+          this.draw();
+          if (now - lastS > 45) { lastS = now; this.setState({ s: this.race.snap() }); }
+        }
+        this.raf = requestAnimationFrame(frame);
+        this.to = setTimeout(frame, 40); // keeps the game running where rAF is paused (hidden or embedded frames)
+      };
+      frame();
+    }).catch(e => console.warn('Pole Position failed to load: ' + e));
+    window.addEventListener('keydown', this.onKey); window.addEventListener('keyup', this.onKey); window.addEventListener('blur', this.onBlur);
+    const fit = () => { const w = this.wrapRef.current; if (!w) return; const k = (w.clientWidth || 380) / 380; if (Math.abs(k - this.k) > 0.001) { this.k = k; this.setState({ k }); } };
+    if (window.ResizeObserver) { this.ro = new ResizeObserver(fit); if (this.wrapRef.current) this.ro.observe(this.wrapRef.current); }
+    this.onResize = fit; window.addEventListener('resize', fit); fit();
+    document.addEventListener('visibilitychange', this.onVis);
+  }
+  // Pause only when the page goes from visible to hidden (tab switch); frames that start hidden keep running.
+  onVis = () => { this.paused = document.hidden; this.keys.clear(); this.touch = null; const c = this.snd && this.snd.ctx; if (c) document.hidden ? c.suspend() : c.resume(); };
+  componentDidUpdate() { const c = this.circ(); if (this.E && this.race && this.builtFor !== c.id + '|' + c.tod) this.build(); }
+  componentWillUnmount() {
+    this.dead = true; cancelAnimationFrame(this.raf); clearTimeout(this.to);
+    window.removeEventListener('keydown', this.onKey); window.removeEventListener('keyup', this.onKey); window.removeEventListener('blur', this.onBlur);
+    document.removeEventListener('visibilitychange', this.onVis);
+    window.removeEventListener('resize', this.onResize); if (this.ro) this.ro.disconnect();
+    if (this.snd) this.snd.close();
+  }
+  draw() {
+    const cv = this.canvasRef.current;
+    if (!cv) return;
+    const W = Math.round(380 * this.k * Math.min(2, window.devicePixelRatio || 1)), H = Math.round(W * 540 / 380);
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const ctx = cv.getContext('2d');
+    ctx.setTransform(W / 380, 0, 0, W / 380, 0, 0);
+    this.race.draw(ctx, 380, 540);
+  }
+  readInput(dt) {
+    const t = this.touch, K = this.keys;
+    if (t) {
+      if (!t.moved && performance.now() - t.t0 > 140) t.brake = true;
+      this.inp.steer = t.steer; this.inp.brake = t.brake || t.second; return;
+    }
+    const kb = (K.has('r') ? 1 : 0) - (K.has('l') ? 1 : 0);
+    this.kbs += (kb - this.kbs) * Math.min(1, dt * (kb ? 7 : 12));
+    this.inp.steer = this.kbs; this.inp.brake = K.has('b');
+  }
+  onKey = e => {
+    const k = e.key, down = e.type === 'keydown';
+    if (k === 'Escape') { if (down && this.props.onClose) this.props.onClose(); return; }
+    const r = this.race, idle = !r || r.state === 'intro' || (r.state === 'done' && r.result);
+    if ((k === 'Enter' || k === ' ') && idle) { if (down) { e.preventDefault(); this.primary(); } return; }
+    const m = { ArrowLeft: 'l', a: 'l', A: 'l', ArrowRight: 'r', d: 'r', D: 'r', ArrowDown: 'b', s: 'b', S: 'b', ' ': 'b' }[k];
+    if (!m) return;
+    e.preventDefault();
+    down ? this.keys.add(m) : this.keys.delete(m);
+  };
+  onBlur = () => { this.keys.clear(); this.touch = null; this.setState({ pad: null }); };
+  local(e) { const b = this.stageRef.current.getBoundingClientRect(); return [(e.clientX - b.left) / this.k, (e.clientY - b.top) / this.k]; }
+  pDown = e => {
+    const r = this.race;
+    if (!r || (r.state !== 'race' && r.state !== 'grid')) return;
+    if (this.snd) this.snd.ensure();
+    const [x, y] = this.local(e);
+    if (!this.touch) {
+      this.touch = { id: e.pointerId, x0: x, y0: y, x, y, moved: false, t0: performance.now(), steer: 0, brake: false, second: false, sid: null };
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+      this.setState({ pad: { x0: x, y0: y, x } });
+    } else if (e.pointerId !== this.touch.id) { this.touch.second = true; this.touch.sid = e.pointerId; }
+  };
+  pMove = e => {
+    const t = this.touch;
+    if (!t || e.pointerId !== t.id) return;
+    const [x, y] = this.local(e), dx = x - t.x0;
+    t.x = x; t.y = y;
+    if (Math.abs(dx) > 10 || Math.abs(y - t.y0) > 16) { t.moved = true; t.brake = false; }
+    t.steer = Math.abs(dx) < 6 ? 0 : Math.max(-1, Math.min(1, (dx - Math.sign(dx) * 6) / 64));
+    this.setState({ pad: { x0: t.x0, y0: t.y0, x } });
+  };
+  pUp = e => {
+    const t = this.touch;
+    if (!t) return;
+    if (e.pointerId === t.sid) { t.second = false; t.sid = null; return; }
+    if (e.pointerId !== t.id) return;
+    this.touch = null; this.setState({ pad: null });
+  };
+  noMenu = e => e.preventDefault();
+  stop = e => e.stopPropagation();
+  primary = () => {
+    const r = this.race;
+    if (!r) return;
+    if (this.snd) this.snd.ensure();
+    if (r.state === 'intro' || r.state === 'done') { r.setDifficulty(this.state.diff); r.start(); this.setState({ s: r.snap() }); }
+  };
+  toSetup = () => { const r = this.race; if (!r) return; r.grid(); r.state = 'intro'; this.setState({ s: r.snap() }); };
+  setDiff = d => { this.setState({ diff: d }); if (this.E) this.E.store.set('pp-diff', d); if (this.race && this.race.state === 'intro') this.race.setDifficulty(d); };
+  toggleMute = () => { if (!this.snd) return; this.snd.ensure(); const m = !this.state.muted; this.snd.setMuted(m); this.setState({ muted: m }); };
+
+  renderVals() {
+    const base = { k: this.state.k, wrapRef: this.wrapRef, stageRef: this.stageRef, canvasRef: this.canvasRef, pDown: this.pDown, pMove: this.pMove, pUp: this.pUp, noMenu: this.noMenu, stop: this.stop, toggleMute: this.toggleMute, muteIcon: this.state.muted ? 'volume_off' : 'volume_up' };
+    const r = this.race, s = this.state.s;
+    if (!r || !s) return { ...base, loading: true, isIntro: false, isGrid: false, isRace: false, isDone: false };
+    const c = this.circ(), F = this.E.fmtLap, st = s.state, res = s.result, pad = this.state.pad, diff = this.state.diff;
+    const dx = pad ? Math.max(-64, Math.min(64, pad.x - pad.x0)) : 0;
+    const tod = { day: 'Day race', dusk: 'Twilight race', night: 'Night race' }[c.tod] || 'Day race';
+    const out = {
+      ...base, loading: false,
+      isIntro: st === 'intro', isGrid: st === 'grid', isRace: st === 'race' || (st === 'done' && !res), isDone: st === 'done' && !!res,
+      pos: 'P' + s.pos, total: '/' + s.total, lap: `Lap ${s.lap}/${s.laps}`, lapTime: F(s.lapTime), best: 'Best ' + (s.bestLap != null ? F(s.bestLap) : '–'),
+      kmh: String(s.kmh), gear: String(s.gear), slip: s.slip, braking: s.braking, hasMsg: !!s.msg, msg: s.msg,
+      padOn: !!pad, ringL: (pad ? pad.x0 - 64 : 0) + 'px', ringT: (pad ? pad.y0 - 22 : 0) + 'px', knobL: (pad ? pad.x0 + dx - 18 : 0) + 'px', knobT: (pad ? pad.y0 - 18 : 0) + 'px',
+      lights: [0, 1, 2, 3, 4].map(i => ({ bg: i < s.lights && !s.out ? '#ff2a2a' : '#262930' })), gridText: s.lights < 5 ? 'Get ready' : 'Wait for lights out',
+      roundLine: (c.round ? 'Round ' + c.round + ' · ' : '') + tod, gp: c.gp, circuitName: c.name, gpShort: c.short || c.gp, outline: this.outline, hasOutline: !!this.outline,
+      info: `${r.laps} laps · ${s.total} cars · you start last`,
+      chText: r.challenge.text, chNote: r.challenge.done ? 'Completed' : 'Medium or Hard', chColor: r.challenge.done ? '#5fd38d' : 'rgba(255,255,255,0.62)',
+      bestLapAll: r.best.lap != null ? F(r.best.lap) : '–', bestPosAll: r.best.pos ? 'P' + r.best.pos : '–',
+      diffs: [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']].map(([k, label]) => ({ label, bg: k === diff ? '#f3f4f6' : 'transparent', fg: k === diff ? '#0e1016' : 'rgba(255,255,255,0.82)', pick: () => this.setDiff(k) })),
+      start: this.primary, again: this.primary, setup: this.toSetup,
+      rPos: '', rOf: '', rGain: '', rGainColor: '#ffffff', rTime: '', rBest: '', rNewLap: false, rContacts: '', rCh: '', rChIcon: 'flag', rChColor: '#ffffff'
+    };
+    if (res) Object.assign(out, {
+      rPos: 'P' + res.pos, rOf: 'of ' + res.total, rGain: res.gain > 0 ? `Gained ${res.gain} places` : res.gain === 0 ? 'Held position' : `Lost ${-res.gain} places`,
+      rGainColor: res.gain > 0 ? '#5fd38d' : 'rgba(255,255,255,0.75)', rTime: F(res.time), rBest: F(res.bestLap), rNewLap: res.newLap, rContacts: String(res.contacts),
+      rCh: res.challengeDone ? (res.challengeNew ? 'Weekend challenge complete' : 'Weekend challenge already done') : diff === 'easy' ? 'The challenge counts on Medium or Hard' : 'Weekend challenge not done yet',
+      rChIcon: res.challengeDone ? 'check_circle' : 'flag', rChColor: res.challengeDone ? '#5fd38d' : 'rgba(255,255,255,0.72)'
+    });
+    return out;
+  }
+}
+</script>
+</body>
+</html>

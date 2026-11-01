@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<title>Race Weekend</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&amp;display=block">
+<style>body{margin:0;background:#0e1016;-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}a:hover{opacity:.85}button{font:inherit;color:inherit}</style>
+</helmet>
+<div style="{{ rootStyle }}">
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100vh;display:grid;place-items:center;font-family:'IBM Plex Sans',sans-serif;color:#a0a7b3;font-size:14px"><div style="display:flex;flex-direction:column;align-items:center;gap:16px"><img src="assets/logo-mark.png" alt="Race Weekend" style="height:28px;width:auto;display:block">Loading the season…</div></div>
+</sc-if>
+<sc-if value="{{ failed }}" hint-placeholder-val="{{ false }}">
+<div style="min-height:100vh;display:grid;place-items:center;padding:24px;text-align:center"><div style="max-width:360px;display:flex;flex-direction:column;align-items:center;gap:12px"><img src="assets/logo-mark.png" alt="" style="height:28px;width:auto;display:block"><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:28px">Can't reach the F1 data</div><div style="font-size:14px;color:var(--t3);line-height:1.5">Check your connection. Nothing is saved on this device yet, so there is nothing to show offline.</div><div onClick="{{ retry }}" style="cursor:pointer;margin-top:8px;height:44px;padding:0 22px;border-radius:10px;background:oklch(0.58 0.23 25);color:#fff;display:flex;align-items:center;font-weight:600">Try again</div></div></div>
+</sc-if>
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+<div style="position:sticky;top:0;z-index:50;background:var(--hdr);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--bd)">
+<div style="max-width:1280px;margin:0 auto;height:64px;display:flex;align-items:center;gap:24px;padding:0 40px;box-sizing:border-box">
+<div onClick="{{ goHome }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;flex:none"><img src="assets/logo-mark.png" alt="Race Weekend" style="height:22px;width:auto;display:block"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:16px;letter-spacing:0.08em">RACE WEEKEND</span></div>
+<div style="display:flex;align-items:stretch;height:64px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<div onClick="{{ t.click }}" style="cursor:pointer;position:relative;display:flex;align-items:center;padding:0 14px;font-size:14px;font-weight:500;color:{{ t.color }}">{{ t.l }}<span style="position:absolute;left:14px;right:14px;bottom:-1px;height:2px;border-radius:2px;background:{{ t.bar }}"></span></div>
+</sc-for>
+</div>
+<div style="flex:1"></div>
+<sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3)"><span style="font-family:'Material Symbols Rounded';font-size:16px;line-height:1">wifi_off</span>Offline · synced {{ synced }}</div></sc-if>
+<sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ openCur }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;height:36px;padding:0 14px 0 10px;border-radius:999px;background:var(--sf);border:1px solid var(--bd2);font-size:13px;white-space:nowrap">
+<sc-if value="{{ stripLive }}" hint-placeholder-val="{{ false }}"><span style="padding:2px 7px;border-radius:5px;background:oklch(0.58 0.23 25);color:#fff;font-size:11px;font-weight:700">LIVE</span></sc-if>
+<sc-if value="{{ stripIdle }}" hint-placeholder-val="{{ true }}"><img src="{{ stripFlag }}" alt="" style="width:20px;height:14px;border-radius:2px;object-fit:cover;display:block"></sc-if>
+<span style="color:var(--t3)">{{ stripTitle }}</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:500">{{ stripCount }}</span>
+</div>
+</sc-if>
+<div onClick="{{ goSet }}" title="Settings" style="cursor:pointer;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:{{ gearBg }};color:{{ gearFg }}"><span style="font-family:'Material Symbols Rounded';font-size:21px;line-height:1">settings</span></div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}">
+<div style="position:sticky;top:0;z-index:50;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 18px;background:var(--hdr);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)">
+<div onClick="{{ goHome }}" style="cursor:pointer;display:flex;align-items:center;gap:8px"><img src="assets/logo-mark.png" alt="Race Weekend" style="height:18px;width:auto;display:block"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:15px;letter-spacing:0.08em">RACE WEEKEND</span></div>
+<div style="display:flex;align-items:center;gap:4px"><sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;color:var(--t3)">wifi_off</span></sc-if><div onClick="{{ goSet }}" style="cursor:pointer;width:44px;height:44px;display:grid;place-items:center;color:{{ gearFg }}"><span style="font-family:'Material Symbols Rounded';font-size:23px;line-height:1">settings</span></div></div>
+</div>
+</sc-if>
+<div style="max-width:1200px;margin:0 auto;box-sizing:border-box;padding:{{ pagePad }}">
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:20px">
+<sc-if value="{{ afterFlag }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ openLast }}" style="cursor:pointer;display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;border-radius:14px;background:var(--sf);border:1px solid var(--bd)"><span style="padding:2px 8px;border-radius:5px;background:oklch(0.72 0.16 152 / 0.16);color:oklch(0.78 0.15 152);font-size:12px;font-weight:600">Finished</span><img src="{{ lastFlag }}" alt="" style="width:22px;height:15px;border-radius:2px;object-fit:cover;display:block"><span style="font-size:15px;font-weight:500;flex:1">{{ lastWinner }} wins the {{ lastName }}</span><span style="font-size:13px;font-weight:500">Full results →</span></div>
+</sc-if>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));background:var(--sf);border:1px solid var(--bd);border-radius:16px;overflow:hidden">
+<div style="padding:clamp(22px,4vw,40px);display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:clamp(14px,2.4vw,28px)">
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--t3)">
+<sc-if value="{{ heroLive }}" hint-placeholder-val="{{ false }}"><span style="padding:3px 8px;border-radius:6px;background:oklch(0.58 0.23 25);color:#fff;font-size:11px;font-weight:700;letter-spacing:0.06em">LIVE</span></sc-if>
+<img src="{{ heroFlag }}" alt="" style="width:24px;height:16px;border-radius:2px;object-fit:cover;display:block">
+<span>{{ heroRound }}</span>
+<sc-if value="{{ heroSprint }}" hint-placeholder-val="{{ false }}"><span style="padding:3px 8px;border-radius:6px;background:rgba(240,170,60,0.15);color:oklch(0.8 0.14 75);font-size:12px;font-weight:600">Sprint weekend</span></sc-if>
+</div>
+<div style="margin-top:14px;font-size:13px;color:var(--t3)">{{ heroEyebrow }}</div>
+<h1 style="margin:4px 0 8px;font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(34px,5vw,58px);line-height:0.95;text-wrap:balance">{{ heroTitle }}</h1>
+<div style="font-size:15px;color:var(--t3)">{{ heroMeta }}</div>
+</div>
+<sc-if value="{{ hasHeroTrack }}" hint-placeholder-val="{{ true }}"><img src="{{ heroTrack }}" alt="" style="flex:none;width:clamp(84px,11vw,168px);height:clamp(84px,11vw,168px);object-fit:contain;display:block"></sc-if>
+</div>
+<div style="margin-top:32px;font-size:13px;color:var(--t3)">{{ cdLabel }}</div>
+<sc-if value="{{ hasCd }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:clamp(16px,3vw,28px);margin-top:10px;font-variant-numeric:tabular-nums">
+<sc-if value="{{ cd.showD }}" hint-placeholder-val="{{ true }}"><div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(48px,7vw,76px);line-height:0.85">{{ cd.d }}</div><div style="font-size:12px;color:var(--t4);margin-top:10px">{{ cd.dl }}</div></div></sc-if>
+<div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(48px,7vw,76px);line-height:0.85">{{ cd.h }}</div><div style="font-size:12px;color:var(--t4);margin-top:10px">hours</div></div>
+<div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(48px,7vw,76px);line-height:0.85">{{ cd.m }}</div><div style="font-size:12px;color:var(--t4);margin-top:10px">min</div></div>
+<div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(48px,7vw,76px);line-height:0.85;color:var(--t4)">{{ cd.s }}</div><div style="font-size:12px;color:var(--t4);margin-top:10px">sec</div></div>
+</div>
+</sc-if>
+<div style="margin-top:20px;font-size:14px;color:var(--t2);line-height:1.5">{{ heroWhen }} <span style="color:var(--t4)">· {{ heroAlt }}</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:28px">
+<div onClick="{{ openCur }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 20px;border-radius:10px;background:oklch(0.58 0.23 25);color:#fff;font-size:14px;font-weight:600">Weekend details<span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;font-weight:400">arrow_forward</span></div>
+<sc-if value="{{ heroLive }}" hint-placeholder-val="{{ false }}"><a href="{{ watchUrl }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;background:var(--rs);border:1px solid var(--bd2);font-size:14px;font-weight:500">Watch on F1.com<span style="font-family:'Material Symbols Rounded';font-size:17px;line-height:1">open_in_new</span></a></sc-if>
+<div onClick="{{ toggleWeekendAlerts }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;background:var(--rs);border:1px solid var(--bd2);font-size:14px;font-weight:500"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1;font-variation-settings:{{ alertsFv }}">{{ alertsIcon }}</span>{{ alertsLabel }}</div>
+<div onClick="{{ curIcs }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:10px;background:var(--rs);border:1px solid var(--bd2);font-size:14px;font-weight:500"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">calendar_add_on</span>Add to calendar</div>
+</div>
+</div>
+<div style="background:var(--in);padding:clamp(16px,2.5vw,26px) clamp(8px,2vw,20px);display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 10px 10px">
+<div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:22px">This weekend</div>
+<div style="display:flex;padding:3px;border-radius:9px;background:var(--rs);font-size:12px;font-weight:500"><sc-for list="{{ tzSeg }}" as="o" hint-placeholder-count="2"><span onClick="{{ o.click }}" style="cursor:pointer;padding:5px 10px;border-radius:7px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div>
+</div>
+<sc-for list="{{ curRows }}" as="s" hint-placeholder-count="5">
+<div onClick="{{ openCur }}" style="cursor:pointer;display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 10px;border-radius:10px;background:{{ s.rowBg }}">
+<div style="line-height:1.3"><div style="font-size:14px;font-weight:600">{{ s.dow }}</div><div style="font-size:12px;color:var(--t4)">{{ s.date }}</div></div>
+<div style="min-width:0;line-height:1.35">
+<div style="display:flex;align-items:center;gap:9px">
+<sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Material Symbols Rounded';font-size:16px;line-height:1;color:oklch(0.72 0.16 152)">check_circle</span></sc-if>
+<sc-if value="{{ s.notDone }}" hint-placeholder-val="{{ true }}"><span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ s.dot }};margin:0 4px"></span></sc-if>
+<span style="font-size:15px;font-weight:500;color:{{ s.nameColor }}">{{ s.name }}</span>
+<sc-if value="{{ s.hasTag }}" hint-placeholder-val="{{ false }}"><span style="padding:2px 7px;border-radius:5px;background:oklch(0.58 0.23 25);color:#fff;font-size:11px;font-weight:600">{{ s.tag }}</span></sc-if>
+</div>
+<sc-if value="{{ s.hasRain }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:2px;font-size:12px;color:var(--t4);margin-left:25px"><span style="font-family:'Material Symbols Rounded';font-size:14px;line-height:1">water_drop</span>{{ s.rain }} rain</div></sc-if>
+</div>
+<div style="text-align:right;line-height:1.3"><div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500">{{ s.time }}</div><div style="font-size:11px;color:var(--t4)">{{ s.alt }}</div></div>
+</div>
+</sc-for>
+<div style="margin-top:auto;padding:12px 10px 0;font-size:12px;color:var(--t4)">{{ tzLabel }}</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px">
+<sc-if value="{{ hasLast }}" hint-placeholder-val="{{ true }}">
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column">
+<div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--t4)">Last race</div>
+<div style="display:flex;align-items:center;gap:10px;margin:8px 0 12px"><img src="{{ lastFlag }}" alt="" style="width:22px;height:15px;border-radius:2px;object-fit:cover;display:block"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:22px;line-height:1.1">{{ lastName }}</span></div>
+<sc-for list="{{ lastPodium }}" as="p" hint-placeholder-count="3">
+<div style="display:grid;grid-template-columns:18px 4px minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--bd)">
+<span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:18px;color:var(--t3)">{{ p.pos }}</span><span style="width:4px;height:30px;border-radius:2px;background:{{ p.color }}"></span>
+<div style="min-width:0;line-height:1.3"><div style="font-size:15px;font-weight:500">{{ p.name }}</div><div style="font-size:12px;color:var(--t4)">{{ p.team }}</div></div>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--t2)">{{ p.time }}</span>
+</div>
+</sc-for>
+<div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--bd);display:flex;justify-content:space-between;gap:12px;font-size:13px"><span style="color:var(--t4)">DNF: {{ lastDnf }}</span><span onClick="{{ openLast }}" style="cursor:pointer;font-weight:500;white-space:nowrap">Full results →</span></div>
+</div>
+</sc-if>
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column">
+<div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--t4)">Drivers' championship</div>
+<div style="font-size:13px;color:var(--t3);margin:8px 0 12px">{{ standRound }}</div>
+<sc-for list="{{ top5 }}" as="d" hint-placeholder-count="5">
+<div onClick="{{ d.open }}" style="cursor:pointer;display:grid;grid-template-columns:18px 4px minmax(0,1fr) 44px 44px;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--bd)">
+<span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:18px;color:var(--t3)">{{ d.pos }}</span><span style="width:4px;height:22px;border-radius:2px;background:{{ d.color }}"></span>
+<span style="font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</span>
+<span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:18px;text-align:right">{{ d.pts }}</span>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--t4);text-align:right">{{ d.gap }}</span>
+</div>
+</sc-for>
+<div onClick="{{ goStand }}" style="cursor:pointer;margin-top:auto;padding-top:14px;border-top:1px solid var(--bd);font-size:13px;font-weight:500;text-align:right">All standings →</div>
+</div>
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column">
+<div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--t4)">Constructors' championship</div>
+<div style="font-size:13px;color:var(--t3);margin:8px 0 8px">{{ consLead }}</div>
+<sc-for list="{{ con5 }}" as="c" hint-placeholder-count="5">
+<div onClick="{{ c.open }}" style="cursor:pointer;padding:9px 0 10px;border-top:1px solid var(--bd)">
+<div style="display:flex;align-items:baseline;gap:12px;margin-bottom:7px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:16px;color:var(--t3);width:18px">{{ c.pos }}</span><span style="flex:1;font-size:14px;font-weight:500">{{ c.team }}</span><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:17px">{{ c.pts }}</span></div>
+<div style="height:4px;border-radius:2px;background:var(--trk);margin-left:30px"><div style="height:4px;border-radius:2px;width:{{ c.bar }};background:{{ c.color }}"></div></div>
+</div>
+</sc-for>
+</div>
+</div>
+<sc-if value="{{ hasComing }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin:8px 0 14px"><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:26px">Coming up</div><div onClick="{{ goCal }}" style="cursor:pointer;font-size:13px;font-weight:500">Full calendar →</div></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px">
+<sc-for list="{{ coming }}" as="u" hint-placeholder-count="4">
+<div onClick="{{ u.open }}" style="cursor:pointer;background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:104px;padding:14px 18px;box-sizing:border-box;background:var(--in);border-bottom:1px solid var(--bd)"><sc-if value="{{ u.hasTrack }}" hint-placeholder-val="{{ true }}"><img src="{{ u.track }}" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></sc-if></div>
+<div style="padding:14px 18px 16px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:10px"><img src="{{ u.flag }}" alt="" style="width:22px;height:15px;border-radius:2px;object-fit:cover;display:block"><span style="flex:1;font-size:12px;color:var(--t4)">Round {{ u.r }}</span><span onClick="{{ u.toggleStar }}" title="Star" style="cursor:pointer;width:32px;height:32px;margin:-8px -8px -8px 0;display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1;color:{{ u.starColor }};font-variation-settings:{{ u.starFv }}">star</span></span></div>
+<div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:22px;line-height:1">{{ u.name }}</div>
+<div style="font-size:13px;color:var(--t3)">{{ u.dates }}</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:10px;margin-top:2px;border-top:1px solid var(--bd)"><span style="font-size:12px;color:var(--t4)">Race · {{ u.day }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:500">{{ u.time }}</span></div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+</div></sc-if>
+<sc-if value="{{ isCal }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px">
+<div><div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--t4)">Season</div><h1 style="margin:4px 0 0;font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(34px,4.5vw,46px);line-height:1">Calendar</h1></div>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+<div style="display:flex;padding:3px;border-radius:10px;background:var(--rs);font-size:13px;font-weight:500"><sc-for list="{{ calSeg }}" as="o" hint-placeholder-count="4"><span onClick="{{ o.click }}" style="cursor:pointer;padding:8px 13px;border-radius:8px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div>
+<div onClick="{{ seasonIcs }}" title="Download every session as a calendar file" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:10px;background:var(--rs);border:1px solid var(--bd2);font-size:14px;font-weight:500"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">calendar_add_on</span>Subscribe</div>
+</div>
+</div>
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:16px 18px">
+<div style="display:flex;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:12px"><span><b style="font-weight:600">{{ doneCount }} of {{ raceCount }}</b> <span style="color:var(--t3)">rounds done · {{ toGo }} to go</span></span><span style="display:flex;align-items:center;gap:6px;color:var(--t3)"><span style="width:6px;height:6px;border-radius:50%;background:oklch(0.8 0.14 75)"></span>Sprint</span></div>
+<sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(28px,1fr));gap:5px">
+<sc-for list="{{ ticks }}" as="t" hint-placeholder-count="23"><div onClick="{{ t.open }}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:50%;background:{{ t.dot }}"></span><span style="width:100%;height:30px;border-radius:6px;box-sizing:border-box;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px">{{ t.r }}</span></div></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px"><sc-for list="{{ ticks }}" as="t" hint-placeholder-count="23"><span style="height:6px;border-radius:2px;background:{{ t.thin }}"></span></sc-for></div>
+</sc-if>
+</div>
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:4px clamp(8px,1.5vw,14px)">
+<sc-if value="{{ showEarlierRow }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ toggleEarlier }}" style="cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:14px 8px;border-bottom:1px solid var(--bd)">
+<div style="line-height:1.4;min-width:0"><div style="font-size:14px;font-weight:500">{{ earlierLabel }}</div><div style="font-size:13px;color:var(--t3)">Wins: {{ earlierWins }}</div></div>
+<span style="display:flex;align-items:center;gap:2px;font-size:13px;font-weight:500">{{ earlierBtn }}<span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">{{ earlierIcon }}</span></span>
+</div>
+</sc-if>
+<sc-for list="{{ doneRows }}" as="r" hint-placeholder-count="2">
+<div onClick="{{ r.open }}" style="cursor:pointer;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:14px;padding:13px 8px;border-bottom:1px solid var(--bd)">
+<img src="{{ r.flag }}" alt="" style="width:24px;height:16px;border-radius:2px;object-fit:cover;display:block;opacity:0.75">
+<div style="line-height:1.35;min-width:0"><div style="font-size:15px;font-weight:500;color:var(--t2)">{{ r.name }}</div><div style="font-size:12px;color:var(--t4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">R{{ r.r }} · {{ r.dates }} · {{ r.circuit }}</div></div>
+<div style="display:flex;align-items:center;gap:8px;min-width:0"><span style="width:4px;height:22px;border-radius:2px;background:{{ r.wcolor }}"></span><div style="line-height:1.3"><div style="font-size:14px;font-weight:500">{{ r.winner }}</div><div style="font-size:11px;color:var(--t4)">{{ r.wteam }}</div></div></div>
+</div>
+</sc-for>
+<sc-if value="{{ showNext }}" hint-placeholder-val="{{ true }}">
+<div style="margin:10px 0;border-radius:12px;background:var(--hl);border:1px solid oklch(0.62 0.24 25 / 0.35);padding:16px clamp(12px,2vw,18px)">
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+<img src="{{ nextRow.flag }}" alt="" style="width:26px;height:17px;border-radius:2px;object-fit:cover;display:block">
+<span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:26px;line-height:1">{{ nextRow.name }}</span>
+<span style="padding:2px 7px;border-radius:5px;background:oklch(0.58 0.23 25);color:#fff;font-size:11px;font-weight:600">{{ nextTag }}</span>
+<sc-if value="{{ nextRow.sprint }}" hint-placeholder-val="{{ false }}"><span style="padding:2px 7px;border-radius:5px;background:rgba(240,170,60,0.15);color:oklch(0.8 0.14 75);font-size:11px;font-weight:600">Sprint</span></sc-if>
+<span style="flex:1"></span>
+<span onClick="{{ nextRow.toggleStar }}" style="cursor:pointer;width:36px;height:36px;display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:21px;line-height:1;color:{{ nextRow.starColor }};font-variation-settings:{{ nextRow.starFv }}">star</span></span>
+</div>
+<div style="font-size:13px;color:var(--t3);margin-top:6px">R{{ nextRow.r }} · {{ nextRow.circuit }} · {{ nextRow.dates }} · {{ nextCount }}</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px;margin-top:14px">
+<sc-for list="{{ curRows }}" as="s" hint-placeholder-count="5"><div style="background:var(--sf);border-radius:9px;padding:10px 12px;line-height:1.4"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t3)"><span style="width:6px;height:6px;border-radius:50%;background:{{ s.dot }}"></span>{{ s.name }}</div><div style="font-size:13px"><span style="color:var(--t3)">{{ s.dow }}</span> <span style="font-family:'IBM Plex Mono',monospace;font-weight:500">{{ s.time }}</span></div></div></sc-for>
+</div>
+<div onClick="{{ nextRow.open }}" style="cursor:pointer;margin-top:14px;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;background:oklch(0.58 0.23 25);color:#fff;font-size:14px;font-weight:600">Open weekend<span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;font-weight:400">arrow_forward</span></div>
+</div>
+</sc-if>
+<sc-for list="{{ upRows }}" as="u" hint-placeholder-count="6">
+<div onClick="{{ u.open }}" style="cursor:pointer;display:grid;grid-template-columns:24px minmax(0,1fr) auto 36px;align-items:center;gap:14px;padding:13px 8px;border-bottom:1px solid var(--bd)">
+<img src="{{ u.flag }}" alt="" style="width:24px;height:16px;border-radius:2px;object-fit:cover;display:block">
+<div style="line-height:1.35;min-width:0"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;font-weight:500">{{ u.name }}</span><sc-if value="{{ u.sprint }}" hint-placeholder-val="{{ false }}"><span style="width:6px;height:6px;border-radius:50%;background:oklch(0.8 0.14 75)"></span></sc-if></div><div style="font-size:12px;color:var(--t4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">R{{ u.r }} · {{ u.dates }} · {{ u.circuit }}</div></div>
+<div style="text-align:right;line-height:1.3"><div style="font-size:11px;color:var(--t4)">Race · {{ u.day }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:500">{{ u.time }}</div></div>
+<span onClick="{{ u.toggleStar }}" style="cursor:pointer;width:36px;height:36px;display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:21px;line-height:1;color:{{ u.starColor }};font-variation-settings:{{ u.starFv }}">star</span></span>
+</div>
+</sc-for>
+<sc-if value="{{ calEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:36px 16px;text-align:center;font-size:14px;color:var(--t3);line-height:1.5"><span style="font-family:'Material Symbols Rounded';font-size:28px;line-height:1;display:block;margin-bottom:8px">star</span>No starred races yet. Tap the star on any race to keep it here.</div></sc-if>
+<div style="padding:13px 8px;font-size:12px;color:var(--t4)">{{ tzLabel }}</div>
+</div>
+</div></sc-if>
+<sc-if value="{{ isRace }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:18px">
+<div onClick="{{ back }}" style="cursor:pointer;align-self:flex-start;display:flex;align-items:center;gap:6px;height:36px;font-size:14px;color:var(--t3)"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1">arrow_back</span>Calendar</div>
+<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px">
+<div style="min-width:0">
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--t3)">
+<img src="{{ rFlag }}" alt="" style="width:24px;height:16px;border-radius:2px;object-fit:cover;display:block"><span>{{ rRound }}</span>
+<sc-if value="{{ rSprint }}" hint-placeholder-val="{{ false }}"><span style="padding:3px 8px;border-radius:6px;background:rgba(240,170,60,0.15);color:oklch(0.8 0.14 75);font-size:12px;font-weight:600">Sprint weekend</span></sc-if>
+<sc-if value="{{ rLive }}" hint-placeholder-val="{{ false }}"><span style="padding:3px 8px;border-radius:6px;background:oklch(0.58 0.23 25);color:#fff;font-size:11px;font-weight:700">LIVE</span></sc-if>
+</div>
+<h1 style="margin:12px 0 8px;font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(32px,5vw,54px);line-height:0.95;text-wrap:balance">{{ rTitle }}</h1>
+<div style="font-size:15px;color:var(--t3)">{{ rMeta }}</div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<div onClick="{{ rToggleStar }}" title="Star this race" style="cursor:pointer;width:44px;height:44px;border-radius:10px;background:var(--rs);border:1px solid var(--bd2);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:21px;line-height:1;color:{{ rStarColor }};font-variation-settings:{{ rStarFv }}">star</span></div>
+<sc-if value="{{ rNotDone }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:8px">
+<div onClick="{{ rIcs }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:10px;background:var(--rs);border:1px solid var(--bd2);font-size:14px;font-weight:500"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">calendar_add_on</span>Add weekend</div>
+<div onClick="{{ rToggleAlerts }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:10px;background:var(--rs);border:1px solid var(--bd2);font-size:14px;font-weight:500"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1;font-variation-settings:{{ rAlertsFv }}">{{ rAlertsIcon }}</span>{{ rAlertsLabel }}</div>
+</div>
+</sc-if>
+</div>
+</div>
+<div style="display:flex;align-items:center;flex-wrap:wrap;gap:16px 28px;background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:16px 20px">
+<sc-if value="{{ rNotDone }}" hint-placeholder-val="{{ true }}"><div style="flex:none"><div style="font-size:12px;color:var(--t3)">{{ rCdLabel }}</div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:32px;line-height:1.05">{{ rCd }}</div></div></sc-if>
+<sc-if value="{{ rDone }}" hint-placeholder-val="{{ false }}"><div style="flex:none"><div style="font-size:12px;color:var(--t3)">Finished</div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:26px;line-height:1.1">{{ rWinner }}</div></div></sc-if>
+<div style="flex:1;min-width:260px">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px"><sc-for list="{{ rProgress }}" as="p" hint-placeholder-count="5"><div style="display:flex;flex-direction:column;gap:7px;min-width:0"><span style="height:5px;border-radius:3px;background:{{ p.bg }}"></span><span style="font-size:12px;color:{{ p.fg }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.l }}</span></div></sc-for></div>
+</div>
+<span style="font-size:12px;color:var(--t4)">{{ rDoneCount }}</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start">
+<div style="flex:1.6 1 480px;min-width:0;display:flex;flex-direction:column;gap:18px">
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:16px clamp(8px,1.5vw,12px) 8px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 8px 10px"><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px">Schedule</div><div style="display:flex;padding:3px;border-radius:9px;background:var(--rs);font-size:12px;font-weight:500"><sc-for list="{{ tzSeg }}" as="o" hint-placeholder-count="2"><span onClick="{{ o.click }}" style="cursor:pointer;padding:5px 10px;border-radius:7px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div></div>
+<sc-for list="{{ rRows }}" as="s" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:11px 8px;border-radius:10px;border-top:1px solid var(--bd);background:{{ s.rowBg }}">
+<div style="min-width:0;line-height:1.4">
+<div style="display:flex;align-items:center;gap:9px">
+<sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Material Symbols Rounded';font-size:16px;line-height:1;color:oklch(0.72 0.16 152)">check_circle</span></sc-if>
+<sc-if value="{{ s.notDone }}" hint-placeholder-val="{{ true }}"><span style="width:8px;height:8px;border-radius:50%;flex:none;background:{{ s.dot }};margin:0 4px"></span></sc-if>
+<span style="font-size:15px;font-weight:500;color:{{ s.nameColor }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</span>
+<sc-if value="{{ s.hasTag }}" hint-placeholder-val="{{ false }}"><span style="padding:2px 7px;border-radius:5px;background:oklch(0.58 0.23 25);color:#fff;font-size:11px;font-weight:600">{{ s.tag }}</span></sc-if>
+</div>
+<div style="font-size:12px;color:var(--t4);margin-left:25px">{{ s.dow }} {{ s.date }} · {{ s.dur }}<sc-if value="{{ s.hasRain }}" hint-placeholder-val="{{ false }}"> · {{ s.rain }} rain</sc-if></div>
+</div>
+<div style="text-align:right;line-height:1.3"><div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500">{{ s.time }}</div><div style="font-size:11px;color:var(--t4)">{{ s.alt }}</div></div>
+<div style="display:flex;gap:4px">
+<sc-if value="{{ s.notDone }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;gap:4px">
+<div onClick="{{ s.toggleBell }}" title="Push alert" style="cursor:pointer;width:40px;height:40px;border-radius:9px;display:grid;place-items:center;background:var(--rs);color:{{ s.bellColor }}"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1;font-variation-settings:{{ s.bellFv }}">{{ s.bell }}</span></div>
+<div onClick="{{ s.ics }}" title="Add to calendar" style="cursor:pointer;width:40px;height:40px;border-radius:9px;display:grid;place-items:center;background:var(--rs);color:var(--t2)"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">calendar_add_on</span></div>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+<div style="padding:12px 8px 6px;font-size:12px;color:var(--t4)">{{ tzLabel }}</div>
+</div>
+<sc-if value="{{ rHasResults }}" hint-placeholder-val="{{ false }}">
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:16px clamp(12px,2vw,20px)">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px"><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px">Results</div><div style="display:flex;padding:3px;border-radius:9px;background:var(--rs);font-size:12px;font-weight:500"><sc-for list="{{ rResSeg }}" as="o" hint-placeholder-count="2"><span onClick="{{ o.click }}" style="cursor:pointer;padding:6px 12px;border-radius:7px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div></div>
+<sc-if value="{{ rHasPodium }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;max-width:460px;margin:0 auto 16px">
+<sc-for list="{{ rPodium }}" as="p" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:0">
+<span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:26px;line-height:1">{{ p.code }}</span><span style="font-size:12px;color:var(--t3)">{{ p.team }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t2);margin-bottom:8px">{{ p.time }}</span>
+<div style="width:100%;height:{{ p.h }};border-radius:10px 10px 0 0;background:var(--rs);border-top:4px solid {{ p.color }};display:grid;place-items:center;font-family:Rajdhani,sans-serif;font-weight:700;font-size:34px;color:var(--t3)">{{ p.pos }}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-for list="{{ rRes }}" as="x" hint-placeholder-count="10">
+<div style="display:grid;grid-template-columns:30px 4px minmax(0,1fr) auto 36px;align-items:center;gap:12px;padding:10px 4px;border-top:1px solid var(--bd);color:{{ x.fg }}">
+<span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:16px;color:var(--t3)">{{ x.pos }}</span><span style="width:4px;height:24px;border-radius:2px;background:{{ x.color }}"></span>
+<div style="min-width:0;line-height:1.3"><div style="font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ x.name }}</div><div style="font-size:11px;color:var(--t4)">{{ x.team }}</div></div>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--t2);text-align:right">{{ x.time }}</span>
+<span style="font-size:12px;color:oklch(0.74 0.15 152);text-align:right">{{ x.pts }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ rNoResults }}" hint-placeholder-val="{{ true }}">
+<div style="background:var(--sf);border:1px dashed var(--bd2);border-radius:14px;padding:22px;display:flex;align-items:center;gap:16px">
+<span style="width:44px;height:44px;border-radius:12px;background:var(--rs);display:grid;place-items:center;flex:none"><span style="font-family:'Material Symbols Rounded';font-size:22px;line-height:1;color:var(--t3)">emoji_events</span></span>
+<div style="font-size:14px;color:var(--t3);line-height:1.5">{{ rResNote }}</div>
+</div>
+</sc-if>
+</div>
+<div style="flex:1 1 300px;min-width:0;display:flex;flex-direction:column;gap:18px">
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden">
+<div style="position:relative;height:240px;padding:22px 24px 38px;box-sizing:border-box;background:var(--in);border-bottom:1px solid var(--bd)">
+<sc-if value="{{ rHasTrack }}" hint-placeholder-val="{{ true }}"><img src="{{ rTrack }}" alt="Circuit layout" style="width:100%;height:100%;object-fit:contain;display:block"><div style="position:absolute;left:18px;bottom:14px;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--t4)"><span style="width:4px;height:12px;border-radius:1px;background:#f0283c"></span>Start / finish</div></sc-if>
+<sc-if value="{{ rNoTrack }}" hint-placeholder-val="{{ false }}"><div style="height:100%;display:grid;place-items:center;font-size:13px;color:var(--t4)">Layout not available</div></sc-if>
+</div>
+<div style="padding:4px 20px 8px">
+<div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);font-size:14px"><span style="color:var(--t3)">Length</span><span style="font-family:'IBM Plex Mono',monospace">{{ rKm }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);font-size:14px"><span style="color:var(--t3)">Race laps</span><span style="font-family:'IBM Plex Mono',monospace">{{ rLaps }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--bd);font-size:14px"><span style="color:var(--t3)">Track timezone</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px">{{ rTz }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;font-size:14px"><span style="color:var(--t3)">{{ rPrevLabel }}</span><span style="font-weight:500;text-align:right">{{ rPrev }}</span></div>
+</div>
+</div>
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:18px 20px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px"><span style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--t4)">{{ rWxTitle }}</span><span style="font-size:12px;color:var(--t4)">{{ rWxSrc }}</span></div>
+<sc-if value="{{ rHasWx }}" hint-placeholder-val="{{ false }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:8px"><sc-for list="{{ rWx }}" as="d" hint-placeholder-count="3"><div style="background:var(--rs);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600">{{ d.day }}</span><span style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;color:var(--t2)">{{ d.icon }}</span><span style="font-size:14px">{{ d.hi }} <span style="color:var(--t4)">{{ d.lo }}</span></span><span style="font-size:12px;color:var(--t3)">{{ d.rain }}</span></div></sc-for></div>
+</sc-if>
+<sc-if value="{{ rNoWx }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:var(--t3);line-height:1.5">{{ rWxNote }}</div></sc-if>
+</div>
+</div>
+</div>
+</div></sc-if>
+<sc-if value="{{ isStand }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px">
+<div><div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--t4)">{{ standRound }}</div><h1 style="margin:4px 0 0;font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(34px,4.5vw,46px);line-height:1">Standings</h1></div>
+<div style="display:flex;padding:3px;border-radius:10px;background:var(--rs);font-size:14px;font-weight:500"><sc-for list="{{ sSeg }}" as="o" hint-placeholder-count="2"><span onClick="{{ o.click }}" style="cursor:pointer;padding:8px 18px;border-radius:8px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div>
+</div>
+<div style="display:grid;grid-template-columns:{{ standCols }};gap:18px;align-items:start">
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:8px">
+<sc-if value="{{ sIsD }}" hint-placeholder-val="{{ true }}">
+<sc-for list="{{ sDrivers }}" as="d" hint-placeholder-count="12">
+<div onClick="{{ d.open }}" style="cursor:pointer;display:grid;grid-template-columns:28px 4px minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;border:1px solid {{ d.rowBd }};background:{{ d.rowBg }}">
+<span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:18px;color:var(--t3)">{{ d.pos }}</span><span style="width:4px;height:28px;border-radius:2px;background:{{ d.color }}"></span>
+<div style="min-width:0;line-height:1.3"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t4)">{{ d.code }}</span></div><div style="font-size:12px;color:var(--t4)">{{ d.team }} · {{ d.wins }} wins</div></div>
+<div style="text-align:right;line-height:1.2"><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:19px">{{ d.pts }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t4)">{{ d.gap }}</div></div>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ sIsT }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ sTeams }}" as="c" hint-placeholder-count="11">
+<div onClick="{{ c.open }}" style="cursor:pointer;padding:11px 12px;border-radius:10px;border:1px solid {{ c.rowBd }};background:{{ c.rowBg }}">
+<div style="display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:18px;color:var(--t3)">{{ c.pos }}</span><div style="min-width:0;line-height:1.3"><div style="font-size:15px;font-weight:500">{{ c.team }}</div><div style="font-size:12px;color:var(--t4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.drv }}</div></div><div style="text-align:right;line-height:1.2"><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:19px">{{ c.pts }}</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--t4)">{{ c.gap }}</div></div></div>
+<div style="height:4px;border-radius:2px;background:var(--trk);margin:8px 0 0 40px"><div style="height:4px;border-radius:2px;width:{{ c.bar }};background:{{ c.color }}"></div></div>
+</div>
+</sc-for>
+</sc-if>
+</div>
+<sc-if value="{{ pShow }}" hint-placeholder-val="{{ false }}">
+<div style="{{ panelStyle }}">
+<div style="position:relative;height:260px;overflow:hidden;background:{{ pHeroBg }};border-bottom:4px solid {{ pColor }}">
+<sc-if value="{{ pHasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ pPhoto }}" alt="{{ pTitle }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:{{ pPos }};display:block"><div style="position:absolute;left:0;right:0;bottom:0;height:50%;background:linear-gradient(to top,rgba(8,9,12,0.72),rgba(8,9,12,0))"></div></sc-if>
+<sc-if value="{{ pIsD }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:20px;bottom:14px;font-family:Rajdhani,sans-serif;font-weight:700;font-size:68px;line-height:0.8;color:{{ pNumFg }}">{{ pNum }}</span></sc-if>
+<sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}"><span onClick="{{ closeSheet }}" style="cursor:pointer;position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:12px;background:var(--sf);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">close</span></span></sc-if>
+</div>
+<div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:16px">
+<div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:30px;line-height:1">{{ pTitle }}</div><div style="font-size:14px;color:var(--t3);margin-top:4px">{{ pSub }}</div></div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px"><sc-for list="{{ pStats }}" as="x" hint-placeholder-count="4"><div style="background:var(--rs);border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:var(--t4)">{{ x.l }}</div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:22px">{{ x.x }}</div></div></sc-for></div>
+<div>
+<div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--t4);margin-bottom:4px">This season</div>
+<sc-if value="{{ pLoading }}" hint-placeholder-val="{{ true }}"><div style="font-size:13px;color:var(--t3);padding:10px 0">Loading results…</div></sc-if>
+<sc-for list="{{ pRows }}" as="r" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:minmax(0,1fr) auto 40px;gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--bd);font-size:14px"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.race }}</span><span style="padding:2px 8px;border-radius:6px;background:{{ r.bg }};color:{{ r.fg }};font-family:Rajdhani,sans-serif;font-weight:700;font-size:14px">{{ r.pos }}</span><span style="font-size:12px;color:var(--t4);text-align:right">{{ r.pts }}</span></div></sc-for>
+</div>
+<sc-if value="{{ pHasFoot }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><sc-if value="{{ pHasUrl }}" hint-placeholder-val="{{ false }}"><a href="{{ pUrl }}" target="_blank" rel="noopener" style="font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px">Wikipedia<span style="font-family:'Material Symbols Rounded';font-size:16px;line-height:1">open_in_new</span></a></sc-if><sc-if value="{{ pHasPhoto }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px;color:var(--t4)">Photo via Wikipedia</span></sc-if></div></sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{ pScrim }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeSheet }}" style="position:fixed;inset:0;z-index:85;background:rgba(0,0,0,0.5)"></div></sc-if>
+</div></sc-if>
+<sc-if value="{{ isGames }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:22px">
+<div style="max-width:720px">
+<div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--t4)">Arcade</div>
+<h1 style="margin:4px 0 10px;font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(34px,4.5vw,46px);line-height:1">Race Weekend Games</h1>
+<p style="margin:0;font-size:15px;line-height:1.55;color:var(--t3)">Five bite-sized racers to fill the gap between FP and qualifying. All run on your phone or desktop — drag to steer on touch, arrow keys or WASD on a keyboard.</p>
+<sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:13px;color:var(--t2)"><span style="font-family:'Material Symbols Rounded';font-size:17px;line-height:1">timer</span>{{ gameHint }}</div></sc-if>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px">
+<sc-for list="{{ games }}" as="g" hint-placeholder-count="5">
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:180px;overflow:hidden;display:grid;place-items:center;background:repeating-linear-gradient(135deg,var(--st1) 0 10px,var(--st2) 10px 20px)">
+<sc-if value="{{ g.noImg }}" hint-placeholder-val="{{ true }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--t4)">{{ g.art }}</span></sc-if>
+<sc-if value="{{ g.shot }}" hint-placeholder-val="{{ false }}"><img src="{{ g.src }}" alt="{{ g.alt }}" style="width:100%;height:180px;object-fit:cover;display:block"></sc-if>
+</div>
+<div style="padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1">
+<div style="font-size:12px;color:var(--t4)">{{ g.tag }}</div>
+<div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px;line-height:1.05">{{ g.t }}</div>
+<p style="margin:2px 0 0;font-size:13px;line-height:1.5;color:var(--t3);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">{{ g.desc }}</p>
+<div style="margin-top:auto;padding-top:14px;display:flex;align-items:center;justify-content:space-between">
+<span style="display:flex;gap:6px;color:var(--t4)"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">touch_app</span><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">keyboard</span></span>
+<div onClick="{{ g.play }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:10px;background:oklch(0.58 0.23 25);color:#fff;font-size:14px;font-weight:600"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1;font-weight:400;font-variation-settings:'FILL' 1">play_arrow</span>Play</div>
+</div>
+</div>
+</div>
+</sc-for>
+<div style="border:1px dashed var(--bd2);border-radius:14px;display:grid;place-items:center;padding:28px;text-align:center;min-height:120px"><div style="font-size:14px;color:var(--t3);line-height:1.5"><span style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;display:block;margin-bottom:8px">sports_esports</span>More mini-games coming<br>between race weekends.</div></div>
+</div>
+</div></sc-if>
+<sc-if value="{{ isSet }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:18px">
+<h1 style="margin:0;font-family:Rajdhani,sans-serif;font-weight:700;font-size:clamp(34px,4.5vw,46px);line-height:1">Settings</h1>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:18px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:18px">
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:18px">
+<div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px">Push alerts</div><div style="font-size:13px;color:var(--t3);margin-top:2px;line-height:1.5">A heads-up before the sessions you care about.</div></div>
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:var(--rs)"><span style="width:8px;height:8px;border-radius:50%;background:{{ nDot }};flex:none"></span><span style="flex:1;font-size:14px">{{ nStatus }}</span>
+<sc-if value="{{ nAsk }}" hint-placeholder-val="{{ false }}"><span onClick="{{ askNotif }}" style="cursor:pointer;font-size:13px;font-weight:600;padding:8px 14px;border-radius:8px;background:oklch(0.58 0.23 25);color:#fff">Turn on</span></sc-if>
+<sc-if value="{{ nOk }}" hint-placeholder-val="{{ false }}"><span onClick="{{ testNotif }}" style="cursor:pointer;font-size:13px;font-weight:500;padding:7px 12px;border-radius:8px;border:1px solid var(--bd2)">Send test</span></sc-if>
+</div>
+<div><div style="font-size:13px;font-weight:500;margin-bottom:10px">Alert me for</div><div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ alertChips }}" as="c" hint-placeholder-count="4"><span onClick="{{ c.click }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:999px;font-size:13px;font-weight:500;background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }}"><span style="font-family:'Material Symbols Rounded';font-size:16px;line-height:1">{{ c.icon }}</span>{{ c.l }}</span></sc-for></div></div>
+<div><div style="font-size:13px;font-weight:500;margin-bottom:10px">How early</div><div style="display:grid;grid-template-columns:repeat(4,1fr);padding:3px;border-radius:10px;background:var(--rs);font-size:13px;font-weight:500;text-align:center"><sc-for list="{{ leadSeg }}" as="o" hint-placeholder-count="4"><span onClick="{{ o.click }}" style="cursor:pointer;padding:8px 0;border-radius:8px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div></div>
+<div onClick="{{ resultsTg.click }}" style="cursor:pointer;display:flex;align-items:center;gap:16px;padding-top:12px;border-top:1px solid var(--bd)"><div style="flex:1;line-height:1.4"><div style="font-size:14px;font-weight:500">Results are in</div><div style="font-size:12px;color:var(--t4)">When a qualifying or race classification is published</div></div><span style="width:44px;height:26px;border-radius:13px;background:{{ resultsTg.bg }};position:relative;flex:none"><span style="position:absolute;top:3px;left:{{ resultsTg.left }};width:20px;height:20px;border-radius:50%;background:{{ resultsTg.knob }};transition:left .15s"></span></span></div>
+<div onClick="{{ changesTg.click }}" style="cursor:pointer;display:flex;align-items:center;gap:16px;padding-top:12px;border-top:1px solid var(--bd)"><div style="flex:1;line-height:1.4"><div style="font-size:14px;font-weight:500">Schedule changes</div><div style="font-size:12px;color:var(--t4)">If a session you follow moves</div></div><span style="width:44px;height:26px;border-radius:13px;background:{{ changesTg.bg }};position:relative;flex:none"><span style="position:absolute;top:3px;left:{{ changesTg.left }};width:20px;height:20px;border-radius:50%;background:{{ changesTg.knob }};transition:left .15s"></span></span></div>
+<div style="font-size:12px;color:var(--t4);line-height:1.5">{{ nScheduled }} On iPhone, add the app to your Home Screen first; Safari only allows alerts for installed web apps.</div>
+</div>
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:16px">
+<div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px">Calendar</div><div style="font-size:13px;color:var(--t3);margin-top:2px;line-height:1.5">Every session of the season as one file for Apple, Google or Outlook Calendar, with reminders built in. They work even without push.</div></div>
+<div onClick="{{ seasonIcs }}" style="cursor:pointer;height:46px;border-radius:12px;background:var(--on);color:var(--onfg);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">calendar_add_on</span>Add the whole season</div>
+<div onClick="{{ calPracticeTg.click }}" style="cursor:pointer;display:flex;align-items:center;gap:16px;padding-top:12px;border-top:1px solid var(--bd)"><div style="flex:1;line-height:1.4"><div style="font-size:14px;font-weight:500">Include practice</div><div style="font-size:12px;color:var(--t4)">Off: qualifying, sprints and races only</div></div><span style="width:44px;height:26px;border-radius:13px;background:{{ calPracticeTg.bg }};position:relative;flex:none"><span style="position:absolute;top:3px;left:{{ calPracticeTg.left }};width:20px;height:20px;border-radius:50%;background:{{ calPracticeTg.knob }};transition:left .15s"></span></span></div>
+<div><div style="font-size:13px;font-weight:500;margin-bottom:10px">Reminder inside each event</div><div style="display:grid;grid-template-columns:repeat(3,1fr);padding:3px;border-radius:10px;background:var(--rs);font-size:13px;font-weight:500;text-align:center"><sc-for list="{{ calRemSeg }}" as="o" hint-placeholder-count="3"><span onClick="{{ o.click }}" style="cursor:pointer;padding:8px 0;border-radius:8px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div></div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:18px">
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+<div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px">Time</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:10px;background:var(--rs);font-size:13px;font-weight:500;text-align:center"><sc-for list="{{ hourSeg }}" as="o" hint-placeholder-count="2"><span onClick="{{ o.click }}" style="cursor:pointer;padding:8px 0;border-radius:8px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);padding:3px;border-radius:10px;background:var(--rs);font-size:13px;font-weight:500;text-align:center"><sc-for list="{{ tzSeg3 }}" as="o" hint-placeholder-count="3"><span onClick="{{ o.click }}" style="cursor:pointer;padding:8px 0;border-radius:8px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div>
+<div style="font-size:12px;color:var(--t4);line-height:1.5">{{ tzPreview }}<br>Your timezone: {{ localTzName }}</div>
+</div>
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+<div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:24px">Appearance</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);padding:3px;border-radius:10px;background:var(--rs);font-size:13px;font-weight:500;text-align:center"><sc-for list="{{ themeSeg }}" as="o" hint-placeholder-count="3"><span onClick="{{ o.click }}" style="cursor:pointer;padding:9px 0;border-radius:8px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.l }}</span></sc-for></div>
+</div>
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:4px 22px">
+<div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--bd)"><div style="flex:1;line-height:1.4"><div style="font-size:14px;font-weight:500">Offline data</div><div style="font-size:12px;color:var(--t4)">{{ syncedLong }}</div></div><span onClick="{{ syncNow }}" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:13px;font-weight:500"><span style="font-family:'Material Symbols Rounded';font-size:17px;line-height:1">sync</span>Sync</span></div>
+<div onClick="{{ openAbout }}" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:14px 0"><span style="flex:1;font-size:14px;font-weight:500">About Race Weekend</span><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:var(--t4)">chevron_right</span></div>
+</div>
+</div>
+</div>
+</div></sc-if>
+</div>
+<sc-if value="{{ mob }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--bg);border-top:1px solid var(--bd)">
+<sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ openCur }}" style="cursor:pointer;margin:10px 12px 0;height:52px;display:flex;align-items:center;gap:12px;padding:0 10px 0 14px;border-radius:12px;background:var(--sf);border:1px solid var(--bd2)">
+<sc-if value="{{ stripLive }}" hint-placeholder-val="{{ false }}"><span style="padding:2px 7px;border-radius:5px;background:oklch(0.58 0.23 25);color:#fff;font-size:11px;font-weight:700">LIVE</span></sc-if>
+<sc-if value="{{ stripIdle }}" hint-placeholder-val="{{ true }}"><img src="{{ stripFlag }}" alt="" style="width:20px;height:14px;border-radius:2px;object-fit:cover;display:block"></sc-if>
+<div style="flex:1;min-width:0;line-height:1.25"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ stripTitle }}</div><div style="font-size:12px;color:var(--t4)">{{ stripRace }}</div></div>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500">{{ stripCount }}</span>
+<span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:var(--t4)">chevron_right</span>
+</div>
+</sc-if>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:4px 4px 18px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<div onClick="{{ t.click }}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:56px"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;color:{{ t.icolor }};font-variation-settings:{{ t.fv }}">{{ t.i }}</span><span style="font-size:11px;font-weight:500;color:{{ t.color }}">{{ t.l }}</span></div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ gameOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;z-index:100;background:rgba(5,6,9,0.78);display:grid;place-items:center;padding:16px">
+<div style="width:min(100%,{{ gameW }});background:var(--sf);border:1px solid var(--bd2);border-radius:18px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;padding:14px 16px 14px 20px;border-bottom:1px solid var(--bd)"><div style="flex:1;min-width:0;line-height:1.3"><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:22px">{{ gameTitle }}</div><div style="font-size:12px;color:var(--t4)">{{ gameTag }}</div></div><span onClick="{{ closeGame }}" style="cursor:pointer;width:40px;height:40px;border-radius:10px;background:var(--rs);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:21px;line-height:1">close</span></span></div>
+<sc-if value="{{ gamePP }}" hint-placeholder-val="{{ false }}"><div style="background:#07080b"><div style="width:min(100%,calc((100dvh - 150px) * 0.7037));margin:0 auto"><dc-import name="Pole Position Game" circuit="{{ gpCircuit }}" rivals="{{ gpRivals }}" on-close="{{ closeGame }}" hint-size="100%,540px"></dc-import></div></div></sc-if>
+<sc-if value="{{ gameGP }}" hint-placeholder-val="{{ false }}"><div style="background:#1b1e24"><div style="width:min(100%,calc((100dvh - 150px) * 1.6));margin:0 auto"><dc-import name="Grand Prix 86 Game" calendar="{{ gpCal }}" rivals="{{ gpTop4 }}" next-round="{{ gpNext }}" on-close="{{ closeGame }}" hint-size="100%,550px"></dc-import></div></div></sc-if>
+<sc-if value="{{ gameGT }}" hint-placeholder-val="{{ false }}"><div style="background:#0b0d12"><div style="width:min(100%,calc((100dvh - 150px) * 1.6));margin:0 auto"><dc-import name="GrandTour Game" next-gp="{{ gtNext }}" on-close="{{ closeGame }}" hint-size="100%,550px"></dc-import></div></div></sc-if>
+<sc-if value="{{ gameSoon }}" hint-placeholder-val="{{ false }}"><div style="aspect-ratio:16/9;display:grid;place-items:center;background:repeating-linear-gradient(135deg,var(--st1) 0 12px,var(--st2) 12px 24px);text-align:center;padding:20px"><div style="font-size:14px;color:var(--t3);line-height:1.6"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--t4)">not ported yet</span><br>This game isn't in the prototype yet. Pole Position, Grand Prix Simulator '86 and GrandTour are playable.</div></div></sc-if>
+<div style="display:flex;align-items:center;gap:8px;padding:12px 20px;font-size:13px;color:var(--t3)"><span style="font-family:'Material Symbols Rounded';font-size:17px;line-height:1">timer</span>{{ gameHint }}</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ aboutOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeAbout }}" style="position:fixed;inset:0;z-index:100;background:rgba(5,6,9,0.7);display:grid;place-items:center;padding:16px">
+<div style="width:min(100%,400px);background:var(--sf);border:1px solid var(--bd2);border-radius:18px;padding:28px 24px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">
+<img src="assets/logo-mark.png" alt="Race Weekend" style="width:180px;height:auto;display:block;margin-bottom:6px">
+<div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:26px">F1 Race Weekend Hub</div>
+<div style="font-size:14px;color:var(--t3)">Your fastest pit-wall to every Formula 1 session.</div>
+<div style="width:100%;display:flex;flex-direction:column;gap:8px;margin-top:10px;font-size:14px">
+<div style="display:flex;justify-content:space-between;padding:10px 14px;border-radius:10px;background:var(--rs)"><span style="color:var(--t3)">Designed by</span><span style="font-weight:600">Daniel B</span></div>
+<div style="display:flex;justify-content:space-between;padding:10px 14px;border-radius:10px;background:var(--rs)"><span style="color:var(--t3)">Data</span><span>Jolpica F1 · Open-Meteo</span></div>
+</div>
+<div style="font-size:12px;color:var(--t4);margin-top:6px">Unofficial · Times in {{ localTzName }}</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:120;padding:10px 16px;border-radius:10px;background:var(--on);color:var(--onfg);font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.3);white-space:nowrap">{{ toast }}</div>
+</sc-if>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    w: typeof window !== 'undefined' ? window.innerWidth : 1200, now: Date.now(), tab: 'home', raceRound: null,
+    data: null, error: null, offline: false, syncing: false, sysLight: false, notif: 'default', scheduled: 0,
+    prefs: { hour12: false, tz: 'local', theme: 'dark', alerts: { p: false, s: true, q: true, r: true }, lead: 15, results: true, changes: true, calPractice: false, calReminder: 15 },
+    starred: [], bells: {}, calFilter: 'all', showEarlier: false, standTab: 'drivers', sel: null, sheet: false, detail: {},
+    results: {}, resTab: 'race', resLoading: false, weather: {}, wxErr: {}, prev: {}, game: null, about: false, toast: '', images: {}
+  };
+  imgPending = new Set();
+  fetchImages() {
+    if (!this.api) return;
+    (this._want || []).filter(k => !(k in this.state.images) && !this.imgPending.has(k)).slice(0, 40).forEach(k => {
+      this.imgPending.add(k);
+      this.api.wikiImage(k).then(src => { this.imgPending.delete(k); this.setState(s => ({ images: { ...s.images, [k]: src } })); if (src) { const im = new Image(); im.onerror = () => this.h.imgFail(k); im.src = src; } });
+    });
+  }
+
+  race = round => this.state.data && this.state.data.races.find(r => r.round === round);
+  toast = msg => { clearTimeout(this.tt); this.setState({ toast: msg }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2600); };
+  ensureNotif = () => { if (this.state.notif === 'default' && this.fmt) this.fmt.askNotif().then(p => this.setState({ notif: p })); };
+  icsOut = (events, name) => { this.fmt.download(name.toLowerCase().replace(/[^a-z0-9.]+/g, '-'), this.fmt.ics(events, this.state.prefs.calReminder)); this.toast('Calendar file downloaded'); };
+
+  h = {
+    go: tab => { this.setState({ tab, sheet: false }); window.scrollTo(0, 0); },
+    set: obj => this.setState(obj),
+    retry: () => this.load(),
+    imgFail: k => { if (k) this.setState(s => ({ images: { ...s.images, [k]: '' } })); },
+    openRace: round => { this.setState({ tab: 'race', raceRound: round, resTab: 'race', sheet: false }); window.scrollTo(0, 0); this.loadRace(round); },
+    openDriver: id => { this.setState({ tab: 'standings', standTab: 'drivers', sel: id, sheet: true }); this.loadDetail(id, 'd'); },
+    openTeam: id => { this.setState({ tab: 'standings', standTab: 'teams', sel: id, sheet: true }); this.loadDetail(id, 't'); },
+    toggleStar: cid => this.setState(s => ({ starred: s.starred.includes(cid) ? s.starred.filter(x => x !== cid) : [...s.starred, cid] })),
+    toggleBell: (key, on) => { this.setState(s => ({ bells: { ...s.bells, [key]: on } })); if (on) this.ensureNotif(); },
+    weekendAlerts: (round, on) => {
+      const r = this.race(round); if (!r) return;
+      this.setState(s => { const b = { ...s.bells }; r.sessions.forEach(x => { b[round + '-' + x.type] = on; }); return { bells: b }; });
+      this.toast((on ? 'Alerts on for ' : 'Alerts off for ') + r.short); if (on) this.ensureNotif();
+    },
+    setPref: (k, v) => this.setState(s => ({ prefs: { ...s.prefs, [k]: v } })),
+    setAlert: (k, on) => this.setState(s => ({ prefs: { ...s.prefs, alerts: { ...s.prefs.alerts, [k]: on } } })),
+    sessionIcs: (round, type) => { const r = this.race(round); const s = r && r.sessions.find(x => x.type === type); if (s) this.icsOut([{ race: r, s }], `${r.short}-${s.name}.ics`); },
+    weekendIcs: round => { const r = this.race(round); if (r) this.icsOut(r.sessions.map(s => ({ race: r, s })), `${r.short}-weekend.ics`); },
+    seasonIcs: () => { const d = this.state.data; if (d) this.icsOut(d.races.flatMap(r => r.sessions.filter(s => this.state.prefs.calPractice || s.kind !== 'p').map(s => ({ race: r, s }))), `f1-${d.season}.ics`); },
+    askNotif: () => this.fmt && this.fmt.askNotif().then(p => { this.setState({ notif: p }); if (p === 'granted') this.toast('Alerts allowed'); }),
+    testNotif: () => { const ok = this.fmt && this.fmt.notify('Race Weekend', 'Test alert: session alerts will look like this.'); this.toast(ok ? 'Test alert sent' : 'This browser blocked the notification'); }
+  };
+
+  componentDidMount() {
+    try { const p = JSON.parse(localStorage.getItem('rw-prefs-v1') || 'null'); if (p) this.setState(s => ({ prefs: { ...s.prefs, ...p.prefs }, starred: p.starred || [], bells: p.bells || {} })); } catch (e) {}
+    const base = new URL('.', location.href).href;
+    Promise.all([import(base + 'rw-api.js'), import(base + 'rw-view.js'), import(base + 'rw-fmt.js')]).then(([api, view, fmt]) => {
+      this.api = api; this.view = view; this.fmt = fmt;
+      const c = api.cached(), imgs = api.cachedImages();
+      this.setState({ notif: fmt.notifState(), images: imgs, ...(c ? { data: c } : {}) });
+      Object.entries(imgs).forEach(([k, src]) => { if (src) { const im = new Image(); im.onerror = () => this.h.imgFail(k); im.src = src; } });
+      this.load();
+    }).catch(e => this.setState({ error: String(e) }));
+    this.tick = setInterval(() => this.setState({ now: Date.now() }), 1000);
+    this.refresh = setInterval(() => this.load(true), 300000);
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    this.onNet = () => this.setState({ offline: !navigator.onLine });
+    window.addEventListener('resize', this.onResize); window.addEventListener('online', this.onNet); window.addEventListener('offline', this.onNet); this.onNet();
+    this.mq = window.matchMedia('(prefers-color-scheme: light)'); this.onMq = () => this.setState({ sysLight: this.mq.matches });
+    this.mq.addEventListener('change', this.onMq); this.onMq();
+  }
+  componentWillUnmount() {
+    clearInterval(this.tick); clearInterval(this.refresh); clearTimeout(this.tt);
+    window.removeEventListener('resize', this.onResize); window.removeEventListener('online', this.onNet); window.removeEventListener('offline', this.onNet);
+    this.mq && this.mq.removeEventListener('change', this.onMq);
+  }
+  componentDidUpdate() {
+    const s = this.state, p = this._prev || {};
+    this._prev = { prefs: s.prefs, starred: s.starred, bells: s.bells, data: s.data, notif: s.notif };
+    if (p.prefs !== s.prefs || p.starred !== s.starred || p.bells !== s.bells) { try { localStorage.setItem('rw-prefs-v1', JSON.stringify({ prefs: s.prefs, starred: s.starred, bells: s.bells })); } catch (e) {} }
+    if (p.prefs !== s.prefs || p.bells !== s.bells || p.data !== s.data || p.notif !== s.notif) this.reschedule();
+    const light = s.prefs.theme === 'light' || (s.prefs.theme === 'system' && s.sysLight);
+    document.body.style.background = light ? '#f4f4f6' : '#0e1016';
+    this.fetchImages();
+    if (s.tab === 'standings' && s.data) {
+      const d = s.standTab === 'drivers', id = s.sel || (d ? s.data.drivers[0] && s.data.drivers[0].id : s.data.constructors[0] && s.data.constructors[0].id);
+      if (id && !s.detail[id]) this.loadDetail(id, d ? 'd' : 't');
+    }
+  }
+
+  async load(quiet) {
+    if (!this.api) return;
+    this.setState({ syncing: true });
+    try {
+      const data = await this.api.loadSeason();
+      this.setState({ data, error: null, syncing: false });
+      const nx = this.view.nextSession(data.races, Date.now()), cur = nx ? nx.r : data.races[data.races.length - 1];
+      if (cur) this.loadRace(cur.round, true);
+      if (this.state.tab === 'race' && this.state.raceRound) this.loadRace(this.state.raceRound, true);
+    } catch (e) {
+      this.setState({ error: String(e.message || e), syncing: false });
+      if (!quiet && this.state.data) this.toast('Offline · showing saved data');
+    }
+  }
+  loadRace(round, fresh) {
+    const d = this.state.data, r = d && d.races.find(x => x.round === round);
+    if (!r || !this.api) return;
+    const started = Date.now() >= new Date(r.sessions[0].start).getTime(), live = started && Date.now() < new Date(r.sessions[r.sessions.length - 1].start).getTime() + 7200000;
+    if (started && (!this.state.results[round] || live || fresh)) {
+      this.setState({ resLoading: true });
+      this.api.loadResults(round).then(res => this.setState(s => ({ results: { ...s.results, [round]: res }, resLoading: false }))).catch(() => this.setState({ resLoading: false }));
+    }
+    if (!(round in this.state.prev)) this.api.loadPrevWinner(d.season, r.circuitId).then(n => this.setState(s => ({ prev: { ...s.prev, [round]: n } })));
+    if (!this.state.weather[round] && !this.state.wxErr[round]) this.api.loadWeather(r).then(w => this.setState(s => ({ weather: { ...s.weather, [round]: w } }))).catch(() => this.setState(s => ({ wxErr: { ...s.wxErr, [round]: true } })));
+  }
+  loadDetail(id, kind) {
+    if (!id || !this.api || this.state.detail[id] || this.pending === id) return;
+    this.pending = id;
+    (kind === 'd' ? this.api.loadDriver(id) : this.api.loadTeam(id))
+      .then(rows => this.setState(s => ({ detail: { ...s.detail, [id]: rows } })))
+      .catch(() => this.setState(s => ({ detail: { ...s.detail, [id]: [] } })))
+      .finally(() => { this.pending = null; });
+  }
+  reschedule() {
+    const { data, prefs, bells, notif } = this.state;
+    if (!data || !this.fmt || notif !== 'granted') { if (this.state.scheduled) this.setState({ scheduled: 0 }); return; }
+    const now = Date.now(), items = [];
+    data.races.forEach(r => r.sessions.forEach(s => {
+      const key = r.round + '-' + s.type, on = key in bells ? bells[key] : !!prefs.alerts[s.kind], at = new Date(s.start).getTime() - prefs.lead * 60000;
+      if (on && at > now && at < now + 21 * 864e5) items.push({ at, title: `${s.name} · ${r.short}`, body: prefs.lead ? `Starts in ${prefs.lead >= 60 ? prefs.lead / 60 + ' h' : prefs.lead + ' min'}` : 'Starting now' });
+    }));
+    const n = this.fmt.schedule(items);
+    if (n !== this.state.scheduled) this.setState({ scheduled: n });
+  }
+
+  renderVals() {
+    if (this.view && (this.state.data || this.state.error)) {
+      try { const v = this.view.derive(this.state, this.h); this._want = v.wantImages; return v; } catch (e) { console.warn('derive failed: ' + e.message); }
+    }
+    return { loading: true, rootStyle: { minHeight: '100vh', background: '#0e1016', color: '#f3f4f6' } };
+  }
+}
+</script>
+</body>
+</html>

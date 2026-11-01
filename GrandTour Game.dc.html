@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=Rajdhani:wght@500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&amp;display=block">
+</helmet>
+<div ref="{{ stageRef }}" onPointerDown="{{ pDown }}" onPointerMove="{{ pMove }}" onPointerUp="{{ pUp }}" onPointerCancel="{{ pUp }}" onContextMenu="{{ noMenu }}" style="position:relative;width:100%;aspect-ratio:{{ aspect }};overflow:hidden;background:#0b0d12;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:'IBM Plex Sans',sans-serif;color:#f3f4f6">
+<canvas ref="{{ canvasRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:rgba(255,255,255,0.6)">Loading the coast road…</div></sc-if>
+
+<sc-if value="{{ isPlay }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:10px;top:10px;padding:7px 12px 8px;border-radius:12px;background:rgba(8,9,12,0.62);pointer-events:none;line-height:1">
+<div style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:rgba(255,255,255,0.7)">TIME</div>
+<div style="margin-top:3px;font-family:Rajdhani,sans-serif;font-weight:700;font-size:38px;line-height:0.9;font-variant-numeric:tabular-nums;color:{{ timeColor }}">{{ time }}</div>
+</div>
+<div style="position:absolute;left:50%;top:10px;transform:translateX(-50%);padding:7px 12px 8px;border-radius:12px;background:rgba(8,9,12,0.62);pointer-events:none;text-align:center;line-height:1;white-space:nowrap">
+<div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{ score }}</div>
+<div style="margin-top:5px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75)">{{ stageLine }}</div>
+</div>
+<div style="position:absolute;right:10px;top:10px;display:flex;gap:6px">
+<div onClick="{{ toggleMute }}" onPointerDown="{{ stop }}" title="Sound" style="cursor:pointer;width:38px;height:38px;border-radius:10px;background:rgba(8,9,12,0.62);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">{{ muteIcon }}</span></div>
+<div onClick="{{ toMenu }}" onPointerDown="{{ stop }}" title="Quit to menu" style="cursor:pointer;width:38px;height:38px;border-radius:10px;background:rgba(8,9,12,0.62);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1">close</span></div>
+</div>
+<sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:0;right:0;top:27%;padding:0 16px;text-align:center;pointer-events:none;font-family:Rajdhani,sans-serif;font-weight:700;font-size:30px;line-height:1.1;text-shadow:0 2px 10px rgba(0,0,0,0.85)">{{ msg }}</div></sc-if>
+<sc-if value="{{ isCount }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:0;right:0;top:20%;text-align:center;pointer-events:none;font-family:Rajdhani,sans-serif;font-weight:700;font-size:96px;line-height:1;text-shadow:0 3px 14px rgba(0,0,0,0.8)">{{ count }}</div></sc-if>
+<div style="position:absolute;left:10px;bottom:10px;padding:8px 10px;border-radius:10px;background:rgba(8,9,12,0.62);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:4px">
+<sc-for list="{{ pyramid }}" as="row" hint-placeholder-count="5"><div style="display:flex;gap:4px"><sc-for list="{{ row.dots }}" as="d" hint-placeholder-count="3"><div style="width:8px;height:8px;border-radius:50%;background:{{ d.bg }}"></div></sc-for></div></sc-for>
+</div>
+<div style="position:absolute;right:10px;bottom:10px;padding:7px 11px 8px;border-radius:10px;background:rgba(8,9,12,0.62);pointer-events:none;text-align:right;line-height:1">
+<div style="display:flex;align-items:baseline;justify-content:flex-end;gap:4px"><span style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:30px;font-variant-numeric:tabular-nums">{{ kmh }}</span><span style="font-size:11px;color:rgba(255,255,255,0.68)">km/h</span></div>
+</div>
+<sc-if value="{{ padOn }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:{{ ringL }};top:{{ ringT }};width:128px;height:44px;border-radius:22px;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);pointer-events:none"></div>
+<div style="position:absolute;left:{{ knobL }};top:{{ knobT }};width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.88);pointer-events:none"></div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isMenu }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:12px;background:linear-gradient(to bottom,rgba(6,7,10,0.15),rgba(6,7,10,0.6))">
+<div style="width:min(100%,360px);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;background:rgba(12,13,17,0.92);border:1px solid rgba(255,255,255,0.1)">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+<div><div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:28px;line-height:1">GrandTour</div><div style="margin-top:4px;font-size:12px;color:rgba(255,255,255,0.7)">Five stages, fifteen roads, five finishes. Pick a side at every fork.</div></div>
+<div onClick="{{ toggleMute }}" style="cursor:pointer;width:34px;height:34px;flex:none;border-radius:10px;background:rgba(255,255,255,0.08);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">{{ muteIcon }}</span></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Radio</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><sc-for list="{{ tracks }}" as="m" hint-placeholder-count="4"><div onClick="{{ m.pick }}" style="cursor:pointer;height:38px;padding:0 10px;border-radius:10px;display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;background:{{ m.bg }};color:{{ m.fg }}"><span style="font-family:'Material Symbols Rounded';font-size:17px;line-height:1">{{ m.icon }}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</span></div></sc-for></div></div>
+<sc-if value="{{ hasCh }}" hint-placeholder-val="{{ true }}"><div style="padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.62)">Weekend challenge</span><span style="font-size:11px;font-weight:600;color:{{ chColor }}">{{ chNote }}</span></div>
+<div style="font-size:14px;font-weight:600;line-height:1.35">{{ chText }}</div>
+<div style="font-size:11px;color:rgba(255,255,255,0.6)">{{ chSub }}</div>
+</div></sc-if>
+<div style="display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0.1)">
+<div style="padding:8px 2px 2px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Best score at each finish</div>
+<sc-for list="{{ finishes }}" as="f" hint-placeholder-count="5"><div style="display:flex;justify-content:space-between;gap:10px;padding:6px 2px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:13px"><span style="color:rgba(255,255,255,0.82)">{{ f.name }}</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ f.best }}</span></div></sc-for>
+</div>
+<div onClick="{{ start }}" style="cursor:pointer;height:46px;border-radius:12px;background:oklch(0.58 0.23 25);color:#ffffff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600"><span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;font-variation-settings:'FILL' 1">flag</span>Start driving</div>
+<div style="font-size:11px;line-height:1.45;color:rgba(255,255,255,0.6)">Drag left or right to steer, hold still to brake. The car accelerates by itself. Checkpoints add time. Keys: ← → steer, ↓ or Space brake.</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(6,7,10,0.86);display:flex;align-items:center;justify-content:center;padding:14px">
+<div style="width:min(100%,360px);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.62)">{{ rKicker }}</div>
+<div style="font-family:Rajdhani,sans-serif;font-weight:700;font-size:40px;line-height:1">{{ rTitle }}</div>
+<div style="display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0.12)">
+<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,0.12);font-size:14px"><span style="color:rgba(255,255,255,0.72)">Driving score</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ rScore }}</span></div>
+<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,0.12);font-size:14px"><span style="color:rgba(255,255,255,0.72)">Time bonus</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ rBonus }}</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,0.12);font-size:14px"><span style="color:rgba(255,255,255,0.72)">Total</span><span style="display:flex;align-items:center;gap:8px"><sc-if value="{{ rNew }}" hint-placeholder-val="{{ false }}"><span style="padding:2px 7px;border-radius:6px;background:#5fd38d;color:#08130c;font-size:11px;font-weight:700">New best</span></sc-if><span style="font-family:'IBM Plex Mono',monospace;font-weight:700">{{ rTotal }}</span></span></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.78)"><sc-for list="{{ rRoute }}" as="x" hint-placeholder-count="5"><span style="display:flex;align-items:center;gap:6px"><span>{{ x.name }}</span><sc-if value="{{ x.more }}" hint-placeholder-val="{{ true }}"><span style="font-family:'Material Symbols Rounded';font-size:15px;line-height:1;color:rgba(255,255,255,0.5)">arrow_forward</span></sc-if></span></sc-for></div>
+<sc-if value="{{ hasCh }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:7px;font-size:13px;color:{{ rChColor }}"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1">{{ rChIcon }}</span>{{ rCh }}</div></sc-if>
+<div style="display:flex;gap:10px;margin-top:2px">
+<div onClick="{{ again }}" style="cursor:pointer;height:44px;padding:0 18px;border-radius:12px;background:oklch(0.58 0.23 25);color:#ffffff;display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600"><span style="font-family:'Material Symbols Rounded';font-size:19px;line-height:1">replay</span>Drive again</div>
+<div onClick="{{ toMenu }}" style="cursor:pointer;height:44px;padding:0 16px;border-radius:12px;background:rgba(255,255,255,0.1);color:#ffffff;display:flex;align-items:center;font-size:14px;font-weight:600">Menu</div>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:880,&quot;height&quot;:550},&quot;nextGp&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{ id: string; gp: string; round: number; season: number }&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { s: null, muted: false, track: 0, pad: null, portrait: false };
+  stageRef = React.createRef();
+  canvasRef = React.createRef();
+  inp = { steer: 0, brake: false };
+  keys = new Set();
+  kbs = 0;
+  touch = null;
+
+  challenge() {
+    const g = this.props.nextGp, R = this.R;
+    if (!g || !g.id || !R) return null;
+    return { key: R.VENUE[g.id] || 'monaco', id: `gt-ch-v1-${g.season || 0}-${g.round || 0}`, gp: g.gp || 'the next Grand Prix' };
+  }
+  build() { this.tour = new this.E.Tour({ challenge: this.challenge() }); this.setState({ s: this.tour.snap() }); }
+  componentDidMount() {
+    const base = new URL('.', location.href).href;
+    Promise.all(['gt-engine.js', 'gt-route.js', 'gt-music.js', 'pp-audio.js'].map(f => import(base + f))).then(([E, R, M, A]) => {
+      if (this.dead) return;
+      Object.assign(this, { E, R, M, snd: new A.Sound() });
+      const tr = E.store.get('gt-radio');
+      this.setState({ muted: this.snd.muted, track: tr == null ? 0 : tr }, () => this.build());
+      let last = performance.now(), lastS = 0;
+      const frame = () => {
+        cancelAnimationFrame(this.raf); clearTimeout(this.to);
+        if (this.dead) return;
+        const now = performance.now(); let left = this.paused ? 0 : Math.min(0.5, Math.max(0, (now - last) / 1000)); last = now;
+        const t = this.tour;
+        if (t) {
+          while (left > 1e-4) { const dt = Math.min(1 / 60, left); left -= dt; this.readInput(dt); t.update(dt, this.inp); }
+          t.events.splice(0).forEach(e => { if (e === 'cp') { this.snd.beep(880, 0.12); setTimeout(() => this.snd.beep(1320, 0.25), 120); } else this.snd.event(e); });
+          this.snd.update(t.audio());
+          if (t.result && this.music && this.music.k >= 0) this.music.stop();
+          this.draw();
+          if (now - lastS > 50) { lastS = now; this.setState({ s: t.snap() }); }
+        }
+        this.raf = requestAnimationFrame(frame);
+        this.to = setTimeout(frame, 40);
+      };
+      frame();
+    }).catch(e => console.warn('GrandTour failed to load: ' + e));
+    window.addEventListener('keydown', this.onKey); window.addEventListener('keyup', this.onKey); window.addEventListener('blur', this.onBlur);
+    document.addEventListener('visibilitychange', this.onVis);
+    if (window.ResizeObserver && this.stageRef.current) { this.ro = new ResizeObserver(es => { const p = es[0].contentRect.width < 560; if (p !== this.state.portrait) this.setState({ portrait: p }); }); this.ro.observe(this.stageRef.current); }
+  }
+  componentWillUnmount() {
+    this.dead = true; cancelAnimationFrame(this.raf); clearTimeout(this.to);
+    window.removeEventListener('keydown', this.onKey); window.removeEventListener('keyup', this.onKey); window.removeEventListener('blur', this.onBlur);
+    document.removeEventListener('visibilitychange', this.onVis);
+    if (this.ro) this.ro.disconnect();
+    if (this.music) this.music.stop();
+    if (this.snd) this.snd.close();
+  }
+  onVis = () => { this.paused = document.hidden; this.keys.clear(); this.touch = null; const c = this.snd && this.snd.ctx; if (c) document.hidden ? c.suspend() : c.resume(); };
+  audio() { if (!this.snd || !this.snd.ensure()) return false; if (!this.music) this.music = new this.M.Music(this.snd.ctx, this.snd.out); return true; }
+  playRadio() { if (this.audio()) this.music.play(this.state.track); }
+  draw() {
+    const cv = this.canvasRef.current; if (!cv || !this.tour) return;
+    const cw = cv.clientWidth || 380, ch = cv.clientHeight || 507, k = Math.min(2, window.devicePixelRatio || 1), W = Math.round(cw * k), H = Math.round(ch * k);
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const ctx = cv.getContext('2d'); ctx.setTransform(k, 0, 0, k, 0, 0); this.tour.draw(ctx, cw, ch);
+  }
+  readInput(dt) {
+    const t = this.touch, K = this.keys;
+    if (t) { if (!t.moved && performance.now() - t.t0 > 140) t.brake = true; this.inp.steer = t.steer; this.inp.brake = t.brake || t.second; return; }
+    const kb = (K.has('r') ? 1 : 0) - (K.has('l') ? 1 : 0);
+    this.kbs += (kb - this.kbs) * Math.min(1, dt * (kb ? 7 : 12));
+    this.inp.steer = this.kbs; this.inp.brake = K.has('b');
+  }
+  onKey = e => {
+    const k = e.key, down = e.type === 'keydown', t = this.tour;
+    if (k === 'Escape') { if (down && this.props.onClose) this.props.onClose(); return; }
+    if (down && t && (t.state === 'intro' || t.result) && (k === 'Enter' || k === ' ')) { e.preventDefault(); t.result ? this.again() : this.start(); return; }
+    if (down && (k === 'm' || k === 'M')) { this.toggleMute(); return; }
+    const m = { ArrowLeft: 'l', a: 'l', A: 'l', ArrowRight: 'r', d: 'r', D: 'r', ArrowDown: 'b', s: 'b', S: 'b', ' ': 'b' }[k];
+    if (!m) return;
+    e.preventDefault();
+    down ? this.keys.add(m) : this.keys.delete(m);
+  };
+  onBlur = () => { this.keys.clear(); this.touch = null; this.setState({ pad: null }); };
+  local(e) { const b = this.stageRef.current.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; }
+  pDown = e => {
+    const t = this.tour; if (!t || t.state === 'intro' || t.result) return;
+    const [x, y] = this.local(e);
+    if (!this.touch) { this.touch = { id: e.pointerId, x0: x, y0: y, moved: false, t0: performance.now(), steer: 0, brake: false, second: false, sid: null }; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {} this.setState({ pad: { x0: x, y0: y, x } }); }
+    else if (e.pointerId !== this.touch.id) { this.touch.second = true; this.touch.sid = e.pointerId; }
+  };
+  pMove = e => {
+    const t = this.touch; if (!t || e.pointerId !== t.id) return;
+    const [x, y] = this.local(e), dx = x - t.x0;
+    if (Math.abs(dx) > 10 || Math.abs(y - t.y0) > 16) { t.moved = true; t.brake = false; }
+    t.steer = Math.abs(dx) < 6 ? 0 : Math.max(-1, Math.min(1, (dx - Math.sign(dx) * 6) / 60));
+    this.setState({ pad: { x0: t.x0, y0: t.y0, x } });
+  };
+  pUp = e => { const t = this.touch; if (!t) return; if (e.pointerId === t.sid) { t.second = false; t.sid = null; return; } if (e.pointerId !== t.id) return; this.touch = null; this.setState({ pad: null }); };
+  noMenu = e => e.preventDefault();
+  stop = e => e.stopPropagation();
+  start = () => { const t = this.tour; if (!t || t.state !== 'intro') return; this.playRadio(); t.start(); this.setState({ s: t.snap() }); };
+  again = () => { if (!this.E) return; this.build(); this.start(); };
+  toMenu = () => { if (!this.E) return; if (this.music) this.music.stop(); this.build(); };
+  pickTrack = k => { this.setState({ track: k }, () => { this.E.store.set('gt-radio', k); if (this.audio()) { if (k >= 0) this.music.play(k); else this.music.stop(); } }); };
+  toggleMute = () => { if (!this.snd) return; this.snd.ensure(); const m = !this.state.muted; this.snd.setMuted(m); this.setState({ muted: m }); };
+
+  renderVals() {
+    const st = this.state, t = this.tour, s = st.s, pad = st.pad, dx = pad ? Math.max(-64, Math.min(64, pad.x - pad.x0)) : 0;
+    const base = { stageRef: this.stageRef, canvasRef: this.canvasRef, pDown: this.pDown, pMove: this.pMove, pUp: this.pUp, noMenu: this.noMenu, stop: this.stop, toggleMute: this.toggleMute, toMenu: this.toMenu, start: this.start, again: this.again, muteIcon: st.muted ? 'volume_off' : 'volume_up', aspect: st.portrait ? '3 / 4' : '16 / 10' };
+    if (!t || !s) return { ...base, loading: true, isPlay: false, isMenu: false, isDone: false, hasCh: false };
+    const R = this.R, E = this.E, ch = this.challenge(), res = s.result, num = n => n.toLocaleString('en-US'), bs = E.bests();
+    const on = new Set(s.path.map(([a, b]) => a + ',' + b)), cur = s.path[s.path.length - 1];
+    const out = {
+      ...base, loading: false, isMenu: s.state === 'intro', isPlay: s.state !== 'intro' && !res, isDone: !!res, isCount: s.state === 'count',
+      time: String(s.time), timeColor: s.low ? '#ff5a4f' : '#ffffff', score: num(s.score), stageLine: `Stage ${s.stage}/5 · ${s.name}`, kmh: String(s.kmh), count: String(s.count), hasMsg: !!s.msg && s.state !== 'count', msg: s.msg,
+      pyramid: R.PYRAMID.map((row, a) => ({ dots: row.map((k, b) => ({ bg: cur && cur[0] === a && cur[1] === b ? '#ffcc00' : on.has(a + ',' + b) ? '#ffffff' : 'rgba(255,255,255,0.22)' })) })),
+      padOn: !!pad, ringL: (pad ? pad.x0 - 64 : 0) + 'px', ringT: (pad ? pad.y0 - 22 : 0) + 'px', knobL: (pad ? pad.x0 + dx - 18 : 0) + 'px', knobT: (pad ? pad.y0 - 18 : 0) + 'px',
+      tracks: [...this.M.TRACKS.map((x, k) => [k, x.name, 'radio']), [-1, 'Radio off', 'music_off']].map(([k, name, icon]) => ({ name, icon: st.track === k && k >= 0 ? 'graphic_eq' : icon, bg: st.track === k ? '#f3f4f6' : 'rgba(255,255,255,0.08)', fg: st.track === k ? '#0e1016' : 'rgba(255,255,255,0.86)', pick: () => this.pickTrack(k) })),
+      hasCh: !!ch, chText: ch ? E.challengeText(ch) : '', chSub: ch ? `Inspired by ${ch.gp}` : '', chNote: ch && t.chDone ? 'Completed' : 'This weekend', chColor: ch && t.chDone ? '#5fd38d' : 'rgba(255,255,255,0.62)',
+      finishes: R.PYRAMID[4].map(k => ({ name: R.THEMES[k].name, best: bs[k] ? num(bs[k]) : '–' })),
+      rKicker: '', rTitle: '', rScore: '', rBonus: '', rTotal: '', rNew: false, rRoute: [], rCh: '', rChIcon: 'flag', rChColor: '#ffffff'
+    };
+    if (res) Object.assign(out, {
+      rKicker: res.finish ? 'Goal' : 'Time up', rTitle: res.finish ? res.name : 'Out of time', rScore: num(res.score), rBonus: res.finish ? num(res.bonus) : '–', rTotal: num(res.total), rNew: res.newBest,
+      rRoute: res.route.map((k, i) => ({ name: R.THEMES[k].name, more: i < res.route.length - 1 })),
+      rCh: res.chNew ? 'Weekend challenge complete' : res.chDone ? 'Weekend challenge already done' : 'Weekend challenge not done yet', rChIcon: res.chDone ? 'check_circle' : 'flag', rChColor: res.chDone ? '#5fd38d' : 'rgba(255,255,255,0.72)'
+    });
+    return out;
+  }
+}
+</script>
+</body>
+</html>
