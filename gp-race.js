@@ -124,7 +124,7 @@ export class Race {
     let vt = Math.min(VMAX, Math.sqrt(A_LAT * tyreGrip(c.tyre, this.wet) * wearGrip(c.wear)) * vu * (c.ai ? c.pace : 0.9), cap || 1e9);
     if (ah && gap < 34) { const av = Math.hypot(ah.vx, ah.vy); if (av > 50) vt = Math.min(vt, av); else { vt = Math.min(vt, 70); c.lane = (ah.loc.off > c.loc.off ? -1 : 1) * TW * 0.32; c.laneT = 1; } }
     if (Math.abs(e) > 1.2) vt = Math.min(vt, 80);
-    return { steer: clamp(e * 3.2, -1, 1), brake: sp > vt + 4, throttle: sp < vt ? 1 : 0 };
+    return { steer: clamp(e * 3.2, -1, 1), brake: sp > vt + 4, throttle: sp < vt ? 1 : 0, vt, sp };
   }
   aiPit(c) {
     const left = this.laps - c.dist / this.t.N, wrong = (c.tyre === 'slick' && this.wet > 0.45) || (c.tyre === 'wet' && this.wet < 0.22);

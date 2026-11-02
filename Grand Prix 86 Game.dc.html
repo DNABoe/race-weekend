@@ -43,8 +43,8 @@
 <sc-if value="{{ boxOn }}" hint-placeholder-val="{{ false }}"><div onClick="{{ box }}" onPointerDown="{{ stop }}" style="cursor:pointer;position:absolute;left:50%;bottom:12px;transform:translateX(-50%);height:40px;padding:0 16px;border-radius:999px;background:oklch(0.58 0.23 25);display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;white-space:nowrap"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1">build</span>Boxing this lap</div></sc-if>
 <sc-if value="{{ pitOn }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:50%;bottom:12px;transform:translateX(-50%);height:40px;padding:0 16px;border-radius:999px;background:rgba(8,9,12,0.72);display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;white-space:nowrap;pointer-events:none">{{ pitText }}</div></sc-if>
 <sc-if value="{{ padOn }}" hint-placeholder-val="{{ false }}">
-<div style="position:absolute;left:{{ ringL }};top:{{ ringT }};width:128px;height:44px;border-radius:22px;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);pointer-events:none"></div>
-<div style="position:absolute;left:{{ knobL }};top:{{ knobT }};width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.88);pointer-events:none"></div>
+<div style="position:absolute;left:{{ ringL }};top:{{ ringT }};width:112px;height:112px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.1);pointer-events:none"></div>
+<div style="position:absolute;left:{{ knobL }};top:{{ knobT }};width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.88);pointer-events:none"></div>
 </sc-if>
 </sc-if>
 
@@ -206,6 +206,7 @@ class Component extends DCLogic {
     ctx.setTransform(k, 0, 0, k, 0, 0);
     const fit = this.D.fitCam(r.t, cw, chh, playing ? [58, 10, 64, 10] : [12, 12, 12, 12]);
     let cam = fit;
+    this.lastCam = fit;
     if (playing && this.camMode() === 'follow') cam = this.D.followCam(this.camF, fit, r.player, dt); else this.camF.follow = false;
     this.D.drawFrame(ctx, cw, chh, r.view(), this.scene, this.skid, cam, { tags: true });
   }
@@ -215,12 +216,27 @@ class Component extends DCLogic {
     s.done.push({ round: c.round, order: res.rows.map(r => r.code) }); s.next = Math.min(this.cal().length, s.next + 1);
     this.E.seasonSave(s); this.setState({ season: s });
   }
+  // Point-to-steer: the stick or arrow keys give the direction to drive in on screen; the car turns toward it.
+  // Speed assist lifts and brakes for corners using the racing-line target speed, so the player only steers.
   readInput(dt) {
-    const t = this.touch, K = this.keys;
-    if (t) { if (!t.moved && performance.now() - t.t0 > 140) t.brake = true; this.inp.steer = t.steer; this.inp.brake = t.brake || t.second; return; }
-    const kb = (K.has('r') ? 1 : 0) - (K.has('l') ? 1 : 0);
-    this.kbs += (kb - this.kbs) * Math.min(1, dt * (kb ? 7 : 12));
-    this.inp.steer = this.kbs; this.inp.brake = K.has('b');
+    const t = this.touch, K = this.keys, r = this.race, p = r && r.player;
+    let sx = 0, sy = 0, brake = false;
+    if (t) { if (t.mag > 0.25) { sx = t.dx; sy = t.dy; } brake = t.second; }
+    else { sx = (K.has('r') ? 1 : 0) - (K.has('l') ? 1 : 0); sy = (K.has('d') ? 1 : 0) - (K.has('u') ? 1 : 0); brake = K.has('b'); }
+    this.inp.steer = 0; this.inp.brake = brake; this.inp.throttle = 1;
+    if (!p) return;
+    if (sx || sy) {
+      const rot = (this.lastCam && this.lastCam.rot) || 0;
+      let e = Math.atan2(sy, sx) - rot - p.h;
+      e = Math.atan2(Math.sin(e), Math.cos(e));
+      this.inp.steer = Math.max(-1, Math.min(1, e * 2.4));
+      if (Math.abs(e) > 1.4 && Math.hypot(p.vx, p.vy) > 90) this.inp.brake = true;
+    }
+    if (r.state === 'race' && r.aiInput && !p.pit && p.fin == null) {
+      const a = r.aiInput(p, dt, 0), lim = a.vt * 1.08;
+      if (a.sp > lim + 4) this.inp.brake = true;
+      this.inp.throttle = a.sp < lim ? 1 : 0;
+    }
   }
   onKey = e => {
     const k = e.key, down = e.type === 'keydown', r = this.race;
@@ -229,7 +245,7 @@ class Component extends DCLogic {
     if (down && (k === 'p' || k === 'P' || k === 'x' || k === 'X')) { this.box(); return; }
     if (down && (k === 'c' || k === 'C')) { this.toggleCam(); return; }
     if (down && (k === 'm' || k === 'M')) { this.toggleMute(); return; }
-    const m = { ArrowLeft: 'l', a: 'l', A: 'l', ArrowRight: 'r', d: 'r', D: 'r', ArrowDown: 'b', s: 'b', S: 'b', ' ': 'b' }[k];
+    const m = { ArrowLeft: 'l', a: 'l', A: 'l', ArrowRight: 'r', d: 'r', D: 'r', ArrowUp: 'u', w: 'u', W: 'u', ArrowDown: 'd', s: 'd', S: 'd', ' ': 'b', Shift: 'b' }[k];
     if (!m) return;
     e.preventDefault();
     down ? this.keys.add(m) : this.keys.delete(m);
@@ -242,18 +258,20 @@ class Component extends DCLogic {
     if (this.snd) this.snd.ensure();
     const [x, y] = this.local(e);
     if (!this.touch) {
-      this.touch = { id: e.pointerId, x0: x, y0: y, moved: false, t0: performance.now(), steer: 0, brake: false, second: false, sid: null };
+      this.touch = { id: e.pointerId, x0: x, y0: y, dx: 0, dy: 0, mag: 0, second: false, sid: null };
       try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
-      this.setState({ pad: { x0: x, y0: y, x } });
+      this.setState({ pad: { x0: x, y0: y, kx: 0, ky: 0 } });
     } else if (e.pointerId !== this.touch.id) { this.touch.second = true; this.touch.sid = e.pointerId; }
   };
   pMove = e => {
     const t = this.touch;
     if (!t || e.pointerId !== t.id) return;
-    const [x, y] = this.local(e), dx = x - t.x0;
-    if (Math.abs(dx) > 10 || Math.abs(y - t.y0) > 16) { t.moved = true; t.brake = false; }
-    t.steer = Math.abs(dx) < 6 ? 0 : Math.max(-1, Math.min(1, (dx - Math.sign(dx) * 6) / 60));
-    this.setState({ pad: { x0: t.x0, y0: t.y0, x } });
+    const [x, y] = this.local(e), dx = x - t.x0, dy = y - t.y0, d = Math.hypot(dx, dy), R = 48;
+    // Stick follows the finger: past the rim the centre is dragged along, so direction changes stay instant.
+    if (d > R) { t.x0 = x - dx / d * R; t.y0 = y - dy / d * R; }
+    const kx = x - t.x0, ky = y - t.y0;
+    t.dx = kx; t.dy = ky; t.mag = Math.min(1, Math.hypot(kx, ky) / R);
+    this.setState({ pad: { x0: t.x0, y0: t.y0, kx, ky } });
   };
   pUp = e => {
     const t = this.touch;
@@ -280,7 +298,7 @@ class Component extends DCLogic {
     const st = this.state, r = this.race, s = st.s;
     const base = { stageRef: this.stageRef, canvasRef: this.canvasRef, pDown: this.pDown, pMove: this.pMove, pUp: this.pUp, noMenu: this.noMenu, stop: this.stop, toggleMute: this.toggleMute, toggleCam: this.toggleCam, toMenu: this.toMenu, box: this.box, start: this.start, again: this.again, prevC: this.prevC, nextC: this.nextC, resetSeason: this.resetSeason, muteIcon: st.muted ? 'volume_off' : 'volume_up', aspect: st.portrait ? '3 / 4' : '16 / 10' };
     if (!r || !s) return { ...base, loading: true, isPlay: false, isGrid: false, isMenu: false, isDone: false };
-    const F = this.E.fmt, tt = r.mode === 'tt', res = s.result, pad = st.pad, dx = pad ? Math.max(-64, Math.min(64, pad.x - pad.x0)) : 0, cal = this.cal(), c = this.circ(), season = st.season;
+    const F = this.E.fmt, tt = r.mode === 'tt', res = s.result, pad = st.pad, cal = this.cal(), c = this.circ(), season = st.season;
     const life = Math.max(0, Math.min(1, 1 - s.wear)), wx = this.wxFor(), cond = wx === 'wet' ? 'wet' : 'dry', best = (this.E.store.get(`gp86-best-v1-${c.id}-${cond}`) || {}).lap;
     const name = code => code === 'YOU' ? 'You' : ((this.rivals().find(x => x.code === code) || {}).name || code);
     const color = code => code === 'YOU' ? '#ffcc00' : ((this.rivals().find(x => x.code === code) || {}).color || '#8a919d');
@@ -295,7 +313,7 @@ class Component extends DCLogic {
       showTyre: !tt, tyreName: s.tyre === 'wet' ? 'Wets' : 'Slicks', tyreRing: s.tyre === 'wet' ? '#3b8ee8' : '#f2c14e', lifePct: Math.round(life * 100) + '%', lifeW: Math.round(life * 100) + '%', lifeColor: life > 0.5 ? '#5fd38d' : life > 0.25 ? '#f2c14e' : '#ff5a4f',
       kmh: String(s.kmh), drsOn: s.boost > 0, drsW: Math.round(s.boost * 100) + '%',
       boxIdle: !tt && s.state === 'race' && !s.pit && !s.box, boxOn: !tt && s.state === 'race' && !s.pit && s.box, pitOn: !!s.pit, pitText: s.pit === 'stop' ? 'Pit stop · ' + s.pitLeft.toFixed(1) + ' s' : 'Pit lane',
-      padOn: !!pad, ringL: (pad ? pad.x0 - 64 : 0) + 'px', ringT: (pad ? pad.y0 - 22 : 0) + 'px', knobL: (pad ? pad.x0 + dx - 18 : 0) + 'px', knobT: (pad ? pad.y0 - 18 : 0) + 'px',
+      padOn: !!pad, ringL: (pad ? pad.x0 - 56 : 0) + 'px', ringT: (pad ? pad.y0 - 56 : 0) + 'px', knobL: (pad ? pad.x0 + pad.kx - 20 : 0) + 'px', knobT: (pad ? pad.y0 + pad.ky - 20 : 0) + 'px',
       lights: [0, 1, 2, 3, 4].map(i => ({ bg: i < s.lights && !s.out ? '#ff2a2a' : '#262930' })), gridText: s.lights < 5 ? 'Get ready' : 'Wait for lights out',
       modes: [['race', 'Race'], ['season', 'Season'], ['tt', 'Time trial']].map(([k, label]) => ({ label, ...SEL(st.mode === k), pick: () => this.set({ mode: k }) })),
       pickCircuit: st.mode !== 'season', isSeason: st.mode === 'season', outline: this.T.trackImg(c.id, 'md', 'dark'), hasOutline: !!this.T.trackImg(c.id, 'md', 'dark'),
@@ -307,7 +325,7 @@ class Component extends DCLogic {
       canStart: !over, startText: st.mode === 'season' ? 'Start round ' + Math.min(cal.length, season.next + 1) : tt ? 'Start time trial' : 'Start race',
       seasonOver: over, champText: over && table.length ? (table[0].code === 'YOU' ? 'You are the champion.' : table[0].name + ' takes the title. You finished P' + (myStand + 1) + '.') : '',
       canReset: st.mode === 'season' && !over && !!season && season.done.length > 0,
-      hint: tt ? 'Drag left or right to steer, hold still to brake. Keys: ← → steer, ↓ or Space brake, C camera.' : 'Drag left or right to steer, hold still to brake, tap Box to pit. Keys: ← → steer, ↓ or Space brake, P box, C camera.',
+      hint: tt ? 'Drag the stick toward where you want to go — speed is handled for you. Two fingers to brake. Keys: arrows/WASD point the car, Space brake, C camera.' : 'Drag the stick toward where you want to go — speed is handled for you. Two fingers to brake, tap Box to pit. Keys: arrows/WASD point the car, Space brake, P box, C camera.',
       rGp: '', rPos: '', rOf: '', rRows: [], rBest: '', rNew: false, rSeason: false, rStand: '', rAgain: true, rNext: false, rNextText: ''
     };
     if (res) {
