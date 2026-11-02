@@ -148,8 +148,8 @@ class Component extends DCLogic {
   codes() { return ['YOU', ...this.rivals().map(r => r.code)]; }
   circ() { const cal = this.cal(), st = this.state; return cal[Math.min(st.mode === 'season' && st.season ? st.season.next : st.ci, cal.length - 1)]; }
   wxFor() { const st = this.state, c = this.circ(); return st.mode === 'season' ? this.E.seasonWeather(c.season || 2026, c.round || 1) : st.mode === 'tt' ? (st.weather === 'wet' ? 'wet' : 'dry') : st.weather; }
-  camMode() { return this.state.cam || (this.state.portrait ? 'follow' : 'whole'); }
-  savePrefs() { const st = this.state; this.E.store.set('gp86-prefs', { mode: st.mode, diff: st.diff, weather: st.weather, cam: st.cam }); }
+  camMode() { return this.state.cam || 'follow'; }
+  savePrefs() { const st = this.state; this.E.store.set('gp86-prefs', { mode: st.mode, diff: st.diff, weather: st.weather, cam2: st.cam }); }
   build() {
     const c = this.circ(), st = this.state;
     const t = this.tracks[c.id] || (this.tracks[c.id] = this.Tk.buildCircuit(c.id));
@@ -164,7 +164,7 @@ class Component extends DCLogic {
       if (this.dead) return;
       Object.assign(this, { E, Tk, Sc, D, T, snd: new A.Sound() });
       const pr = E.store.get('gp86-prefs') || {}, cal = this.cal(), ci = Math.max(0, cal.findIndex(c => c.round === this.props.nextRound));
-      this.setState({ muted: this.snd.muted, mode: pr.mode || 'race', diff: pr.diff || 'medium', weather: pr.weather || 'dry', cam: pr.cam || null, ci, season: E.seasonLoad(cal[0].season || 2026, this.codes()) }, () => this.build());
+      this.setState({ muted: this.snd.muted, mode: pr.mode || 'race', diff: pr.diff || 'medium', weather: pr.weather || 'dry', cam: pr.cam2 || null, ci, season: E.seasonLoad(cal[0].season || 2026, this.codes()) }, () => this.build());
       let last = performance.now(), lastS = 0;
       const frame = () => {
         cancelAnimationFrame(this.raf); clearTimeout(this.to);
@@ -206,9 +206,12 @@ class Component extends DCLogic {
     ctx.setTransform(k, 0, 0, k, 0, 0);
     const fit = this.D.fitCam(r.t, cw, chh, playing ? [58, 10, 64, 10] : [12, 12, 12, 12]);
     let cam = fit;
-    this.lastCam = fit;
-    if (playing && this.camMode() === 'follow') cam = this.D.followCam(this.camF, fit, r.player, dt); else this.camF.follow = false;
-    this.D.drawFrame(ctx, cw, chh, r.view(), this.scene, this.skid, cam, { tags: true });
+    const follow = playing && this.camMode() === 'follow';
+    if (follow) cam = this.D.followCam(this.camF, fit, r.player, dt, r.t, cw, chh); else this.camF.follow = false;
+    this.lastCam = cam;
+    const v = r.view();
+    this.D.drawFrame(ctx, cw, chh, v, this.scene, this.skid, cam, { tags: true });
+    if (follow) { const ms = Math.round(Math.min(120, Math.max(84, cw * 0.17))); this.D.drawMinimap(ctx, v, this.scene, 16, 108, ms); }
   }
   applySeason(res) {
     const s0 = this.state.season, c = this.race.o.circuit, s = { ...s0, pts: { ...s0.pts }, done: [...s0.done] };

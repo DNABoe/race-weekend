@@ -9,11 +9,29 @@ export function fitCam(t, W, H, pad) {
   const s0 = Math.min(aw / b.w, ah / b.h), s90 = Math.min(aw / b.h, ah / b.w), rot = s90 > s0 * 1.05 ? Math.PI / 2 : 0;
   return { x: b.x + b.w / 2, y: b.y + b.h / 2, z: Math.max(s0, s90), rot, ox: (pad[3] - pad[1]) / 2, oy: (pad[0] - pad[2]) / 2 };
 }
-export function followCam(cam, fit, p, dt) {
-  const tx = p.x + p.vx * 0.35, ty = p.y + p.vy * 0.35, k = 1 - Math.exp(-dt * 4);
-  if (!cam.follow) Object.assign(cam, { x: tx, y: ty, follow: true });
-  cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k; cam.z = fit.z * 2.6; cam.rot = fit.rot; cam.ox = 0; cam.oy = 0;
+// Close chase view: zoom scales with the screen (and eases out with speed); the camera leads toward the track ahead,
+// so the next corner comes into view before the car reaches it. North stays up so point-to-steer directions hold.
+export function followCam(cam, fit, p, dt, t, W, H) {
+  const sp = Math.hypot(p.vx, p.vy), base = Math.sqrt(W * H) / 560, zt = base * (1.2 - 0.38 * Math.min(1, sp / 300));
+  let ax = p.x + p.vx * 0.3, ay = p.y + p.vy * 0.3;
+  if (t) { const j = ((p.i + Math.round((60 + sp * 0.85) / t.ds)) % t.N + t.N) % t.N; ax = p.x + (t.X[j] - p.x) * 0.6; ay = p.y + (t.Y[j] - p.y) * 0.6; }
+  const k = 1 - Math.exp(-dt * 3);
+  if (!cam.follow) Object.assign(cam, { x: ax, y: ay, z: zt, follow: true });
+  cam.x += (ax - cam.x) * k; cam.y += (ay - cam.y) * k; cam.z += (zt - cam.z) * (1 - Math.exp(-dt * 1.5)); cam.rot = 0; cam.ox = 0; cam.oy = 0;
   return cam;
+}
+// Corner overview map: whole circuit with every car as a dot, the player's larger and outlined.
+export function drawMinimap(ctx, v, scene, x0, y0, size) {
+  const t = v.t, b = t.bbox, s = size / Math.max(b.w, b.h), w = b.w * s, h = b.h * s;
+  ctx.save(); ctx.globalAlpha = 0.92;
+  ctx.fillStyle = 'rgba(8,9,12,0.66)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0 - 6, y0 - 6, w + 12, h + 12, 10) : ctx.rect(x0 - 6, y0 - 6, w + 12, h + 12); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.beginPath();
+  for (let i = 0; i <= t.N; i += 2) { const k = i % t.N, X = x0 + (t.X[k] - b.x) * s, Y = y0 + (t.Y[k] - b.y) * s; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
+  ctx.closePath(); ctx.stroke(); ctx.globalAlpha = 1;
+  const pl = v.cars.find(c => !c.ai);
+  v.cars.forEach(c => { if (c === pl) return; ctx.fillStyle = c.color; ctx.beginPath(); ctx.arc(x0 + (c.x - b.x) * s, y0 + (c.y - b.y) * s, 2.6, 0, 6.283); ctx.fill(); });
+  if (pl) { ctx.fillStyle = '#ffcc00'; ctx.strokeStyle = '#0e1016'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x0 + (pl.x - b.x) * s, y0 + (pl.y - b.y) * s, 4, 0, 6.283); ctx.fill(); ctx.stroke(); }
+  ctx.restore();
 }
 const shade = (hex, f) => { const n = /^#[0-9a-f]{6}$/i.test(hex || '') ? parseInt(hex.slice(1), 16) : 0x8a919d; return '#' + [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => Math.round(v * f).toString(16).padStart(2, '0')).join(''); };
 
